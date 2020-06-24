@@ -1,14 +1,337 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" media="all" href="./base.css">
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="description" content="likes talking to himself online">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hans Avery</title>
+    <title>HansAvery.com</title>
 </head>
 <body>
-    <h1>Hans Avery</h1>
+    <h1 id="header">Hans Avery</h1>
+    <div id="sheetcontainer">
+        <table id="tbl"></table>
+    </div>
 </body>
+<style>
+    body {margin: 0;}
+    h1 {font-family: sans-serif;}
+    h1 div {display: inline; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
+    .cell {border: 0.5px solid gray; display: inline-block;}
+    .rowLabel {background-color: lightgray; border-color: black; border-style: solid; border-width: 0.5px 1px;}
+    .colLabel {background-color: lightgray; border-color: black; border-style: solid; border-width: 1px 0.5px;}
+    .colLabel.rowLabel {border-width: 1px;}
+    .selected {background-color: green;}
+    .rowLabel.selected {background-color: darkgray;}
+    .colLabel.selected {background-color: darkgray;}
+    table {border-collapse: collapse; border: 0.5px solid black; font-family: sans-serif; white-space: nowrap; line-height: 1.4em;} /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly*/
+    td {display: inline-block; text-align: center; padding: 0;}
+    .goal {background-color: lightblue;}
+
+
+
+    /* div {
+  max-width: 40em;
+  max-height: 20em;
+  overflow: scroll;
+  position: relative;
+}
+
+table {
+  position: relative;
+  border-collapse: collapse;
+}
+
+td,
+th {
+  padding: 0.25em;
+}
+
+thead th {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  background: #000;
+  color: #FFF;
+}
+
+thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+
+tbody th {
+  position: -webkit-sticky;
+  position: sticky;
+  left: 0;
+  background: #FFF;
+  border-right: 1px solid #CCC;
+} */
+
+
+
+</style>
+<script>
+    let headEl = document.getElementById("header");
+    let headText = headEl.innerText.split('');
+    headEl.innerText = "";
+    let chars = headText.map(function(v, i, a) {
+        let s = document.createElement('div');
+        s.innerText = v;
+        headEl.appendChild(s);
+        return s;
+    });
+
+
+    let STATE = {
+        width: 200,
+        height: 100,
+        cells: null,
+        selected: null,
+        x: null,
+        y: null,
+        rowLabels: null,
+        colLabels: null,
+    };
+    STATE.rowHeights = new Array(STATE.height + 1).fill('1.5em');
+    STATE.colWidths = new Array(STATE.width + 1).fill('2.5em');
+
+    var tbl = document.getElementById('tbl')
+    makeGrid(STATE, tbl);
+    loadMap(STATE, ['     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+                    '                                                             ',
+                    '                                                  X          ']);
+    selectCell(STATE, STATE.cells[1][1]);
+
+
+    tbl.onclick = clickHandler;
+    window.addEventListener('keydown', keyHandler, false);
+
+//--------fundef
+
+    function clickHandler(event) {
+        if (!event.target || event.target.nodeName !== 'TD')
+            return;
+        if (event.shift) {
+            alert('not implemented yet')    
+        }
+        else {
+            if (event.target.classList.contains('rowLabel'))
+                selectRow(event.target);
+            else if (event.target.classList.contains('colLabel'))
+                selectCol(event.target);
+            else
+                selectCell(STATE, event.target);
+        }
+    }
+
+    DIRECTIONS = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
+    function keyHandler(event) {
+        event = event || window.event;
+        let key = event.key;
+        if (DIRECTIONS.indexOf(key) !== -1) {
+            let moveType = event.ctrlKey ? 'skip' : 'step';
+            moveSelection(STATE, key, moveType);
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        else if (key === 'Delete') {
+            STATE.selected.innerText = '';
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        else if (key.length === 1 && !event.ctrlKey &&
+                 (  ('a' <= key && key <= 'z') ||
+                    ('A' <= key && key <= 'Z') ||
+                    ('0' <= key && key <= '9'))){
+            STATE.selected.innerText = key;
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }
+
+
+
+//--------- no globals
+    function moveSelection(state, direction, moveType) {
+        let x = state.x;
+        let y = state.y;
+        let incrementX = 0;
+        let incrementY = 0;
+        if (direction === 'ArrowUp')
+            incrementY = -1;
+        else if (direction === 'ArrowDown')
+            incrementY = 1;
+        else if (direction === 'ArrowLeft')
+            incrementX = -1;
+        else if (direction === 'ArrowRight')
+            incrementX = 1;
+        x += incrementX;
+        y += incrementY;
+
+        let startIsFilled = (state.selected.innerText !== '');
+        let lastCell = state.selected;
+        let nextCell = y <= state.height && x<= state.width && state.cells[y][x];
+        let nextIsFilled = (nextCell && nextCell.innerText !== '');
+        let stopCondition = !(startIsFilled && nextIsFilled);
+
+        let numberOfSteps = moveType === 'skip' ? -1 : 1;
+        let stepsTaken = 0;
+
+        while (nextCell) {
+            // check steps within the loop in case we can't take a step w/o being OOB
+            stepsTaken += 1;
+            if (stepsTaken === numberOfSteps)
+                break;
+            
+            nextIsFilled = (nextCell.innerText !== '');
+            if (nextIsFilled === stopCondition) {
+                if (!stopCondition) // if stoppiing at end of filled row, clear nextCell so that lastCell is selected
+                    nextCell = null;
+                break;
+            }
+
+            x += incrementX;
+            y += incrementY;
+            lastCell = nextCell;
+            nextCell = y <= state.height && x<= state.width && state.cells[y][x];
+        }
+        selectCell(STATE, nextCell || lastCell); // use the last if the next is undeifed
+    }
+
+
+    function selectCell(state, cell) {
+        if (cell === state.selected)
+            return;
+        else if (state.selected) {
+            state.selected.classList.remove('selected');
+            state.rowLabels[state.y].classList.remove('selected');
+            state.colLabels[state.x].classList.remove('selected');
+        }
+        cell.classList.add('selected');
+        state.selected = cell;
+        coordinates = cell.id.split(',');
+        state.x = parseInt(coordinates[0]);
+        state.y = parseInt(coordinates[1]);
+        state.rowLabels[state.y].classList.add('selected')
+        state.colLabels[state.x].classList.add('selected')
+        cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+        if (state.selected.classList.contains('goal'))
+            alert('you win!');
+    }
+
+    function makeGrid(state, tbl) {
+        state.cells = [];
+        state.colLabels = [];
+        state.rowLabels = [];
+        for (let i = 0; i < state.height + 1; i++) {
+            let rowEl = document.createElement('tr');
+            let row = []
+            for (let j = 0; j < state.width + 1; j++) {
+                let cellEl = document.createElement('td');
+                cellEl.style.height = state.rowHeights[i];
+                cellEl.style.width = state.colWidths[j];
+                cellEl.id = j + ',' + i
+                rowEl.appendChild(cellEl);
+                if (i !== 0 && j !== 0) {
+                    row.push(cellEl);
+                    cellEl.classList.add('cell');
+                }
+                else {
+                    row.push(null);
+                    if (i === 0) {
+                        cellEl.classList.add('colLabel');
+                        state.colLabels.push(cellEl);
+                        cellEl.innerText = getLetterCode(j);
+                    }
+                    if (j === 0) {
+                        cellEl.classList.add('rowLabel');
+                        state.rowLabels.push(cellEl);
+                        cellEl.innerText = i;
+                    }
+                    if (i === 0 && j === 0)
+                        cellEl.innerText = '';
+                }            
+            }
+            tbl.appendChild(rowEl);
+            state.cells.push(row);
+        }
+    }
+
+    function getLetterCode(num) {
+        let code = [];
+        let remaining = num;
+        while (remaining > 0) {
+            let nextChar = ((remaining - 1) % 26) + 1;
+            remaining = (remaining - nextChar) / 26;
+            code.push(String.fromCharCode(64 + nextChar));
+        }
+        code.reverse();
+        return code.join('');
+    }
+
+
+    function loadMap(state, map) {
+        for (let i = 0; i < map.length && i < state.cells.length; i++)
+            for (let j = 0; j < map[i].length && j < state.cells[i].length; j++) {
+                val = (map[i][j] === ' ' ? '' : map[i][j]);
+                state.cells[i + 1][j + 1].innerText = val;
+                if (val === 'X')
+                    state.cells[i + 1][j + 1].classList.add('goal');
+            }
+    }
+    // function it(allLetters, itLetter) {
+    //     allLetters.forEach(function(v) {
+    //         v.onclick = clickHandler;
+    //         v.classList.remove('selected');
+    //     });
+    //     if (itLetter) {
+    //         itLetter.classList.add('selected');
+    //         itLetter.onclick = null;
+    //         itLetter.parentElement.removeChild(itLetter);
+    //     }
+    // }
+
+
+</script>
 </html>
