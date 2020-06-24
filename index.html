@@ -8,9 +8,7 @@
 </head>
 <body>
     <h1 id="header">Hans Avery</h1>
-    <div id="sheetcontainer">
         <table id="tbl"></table>
-    </div>
 </body>
 <style>
     body {margin: 0;}
@@ -19,14 +17,14 @@
     .cell {border: 0.5px solid gray; display: inline-block;}
     .rowLabel {background-color: lightgray; border-color: black; border-style: solid; border-width: 0.5px 1px;}
     .colLabel {background-color: lightgray; border-color: black; border-style: solid; border-width: 1px 0.5px;}
-    .colLabel.rowLabel {border-width: 1px;}
+    .corner {background-color: lightgray; border-color: black; border-style: solid; border-width: 1px;}
     .selected {background-color: green;}
     .rowLabel.selected {background-color: darkgray;}
     .colLabel.selected {background-color: darkgray;}
-    table {border-collapse: collapse; border: 0.5px solid black; font-family: sans-serif; white-space: nowrap; line-height: 1.4em;} /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly*/
+    table {position: relative; border-collapse: collapse; border: 0.5px solid black; font-family: sans-serif; white-space: nowrap; line-height: 1.4em;} /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
     td {display: inline-block; text-align: center; padding: 0;}
     .goal {background-color: lightblue;}
-
+    #sheetcontainer {position: relative; overflow: scroll;}
 
 
     /* div {
@@ -91,6 +89,7 @@ tbody th {
         y: null,
         rowLabels: null,
         colLabels: null,
+        corner: null
     };
     STATE.rowHeights = new Array(STATE.height + 1).fill('1.5em');
     STATE.colWidths = new Array(STATE.width + 1).fill('2.5em');
@@ -141,7 +140,7 @@ tbody th {
                     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
                     '                                                             ',
                     '                                                  X          ']);
-    selectCell(STATE, STATE.cells[1][1]);
+    selectCell(STATE, STATE.cells[0][0]);
 
 
     tbl.onclick = clickHandler;
@@ -211,11 +210,11 @@ tbody th {
 
         let startIsFilled = (state.selected.innerText !== '');
         let lastCell = state.selected;
-        let nextCell = y <= state.height && x<= state.width && state.cells[y][x];
+        let nextCell = y < state.height && x< state.width && state.cells[y][x];
         let nextIsFilled = (nextCell && nextCell.innerText !== '');
         let stopCondition = !(startIsFilled && nextIsFilled);
 
-        let numberOfSteps = moveType === 'skip' ? -1 : 1;
+        let numberOfSteps = (moveType === 'skip' ? -1 : 1);
         let stepsTaken = 0;
 
         while (nextCell) {
@@ -234,7 +233,7 @@ tbody th {
             x += incrementX;
             y += incrementY;
             lastCell = nextCell;
-            nextCell = y <= state.height && x<= state.width && state.cells[y][x];
+            nextCell = 0 <= y && y < state.height && 0 <= x && x < state.width && state.cells[y][x];
         }
         selectCell(STATE, nextCell || lastCell); // use the last if the next is undeifed
     }
@@ -251,8 +250,8 @@ tbody th {
         cell.classList.add('selected');
         state.selected = cell;
         coordinates = cell.id.split(',');
-        state.x = parseInt(coordinates[0]);
-        state.y = parseInt(coordinates[1]);
+        state.x = parseInt(coordinates[0] - 1);
+        state.y = parseInt(coordinates[1] - 1);
         state.rowLabels[state.y].classList.add('selected')
         state.colLabels[state.x].classList.add('selected')
         cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
@@ -260,43 +259,61 @@ tbody th {
             alert('you win!');
     }
 
+
     function makeGrid(state, tbl) {
         state.cells = [];
         state.colLabels = [];
         state.rowLabels = [];
-        for (let i = 0; i < state.height + 1; i++) {
-            let rowEl = document.createElement('tr');
+        
+        // make header
+        let rowEl = document.createElement('tr');
+
+        // top corner
+        let cellEl = getCell('td', 0, 0, state.rowHeights[0], state.colWidths[0], 'corner', '');
+        rowEl.appendChild(cellEl);
+        state.corner = cellEl
+
+        // rest of header row
+        for (let h = 1; h < state.width + 1; h++) {
+            cellEl = getCell('td', h, 0, state.rowHeights[0], state.colWidths[h], 'colLabel', getLetterCode(h));
+            rowEl.appendChild(cellEl);
+            state.colLabels.push(cellEl);
+        }
+        tbl.appendChild(rowEl);
+        
+        // data rows
+        for (let i = 1; i < state.height + 1; i++) {
+            rowEl = document.createElement('tr');
+            
+            // make row header
+            cellEl = getCell('td', 0, i, state.rowHeights[i], state.colWidths[0], 'rowLabel', i);
+            rowEl.appendChild(cellEl);
+            state.rowLabels.push(cellEl);
+
+            // fill row
             let row = []
-            for (let j = 0; j < state.width + 1; j++) {
-                let cellEl = document.createElement('td');
-                cellEl.style.height = state.rowHeights[i];
-                cellEl.style.width = state.colWidths[j];
-                cellEl.id = j + ',' + i
+            for (let j = 1; j < state.width + 1; j++) {
+                cellEl = getCell('td', j, i, state.rowHeights[i], state.colWidths[j], 'cell', '');
                 rowEl.appendChild(cellEl);
-                if (i !== 0 && j !== 0) {
-                    row.push(cellEl);
-                    cellEl.classList.add('cell');
-                }
-                else {
-                    row.push(null);
-                    if (i === 0) {
-                        cellEl.classList.add('colLabel');
-                        state.colLabels.push(cellEl);
-                        cellEl.innerText = getLetterCode(j);
-                    }
-                    if (j === 0) {
-                        cellEl.classList.add('rowLabel');
-                        state.rowLabels.push(cellEl);
-                        cellEl.innerText = i;
-                    }
-                    if (i === 0 && j === 0)
-                        cellEl.innerText = '';
-                }            
+                row.push(cellEl);
             }
+
             tbl.appendChild(rowEl);
             state.cells.push(row);
-        }
+        }        
     }
+
+
+    function getCell(type, h, v, height, width, cssClass, text) {
+        let cellEl = document.createElement(type);
+        cellEl.style.height = height;
+        cellEl.style.width = width;
+        cellEl.id = h + ',' + v
+        cellEl.classList.add(cssClass);
+        cellEl.innerText = text;
+        return cellEl;
+    }
+
 
     function getLetterCode(num) {
         let code = [];
@@ -315,23 +332,11 @@ tbody th {
         for (let i = 0; i < map.length && i < state.cells.length; i++)
             for (let j = 0; j < map[i].length && j < state.cells[i].length; j++) {
                 val = (map[i][j] === ' ' ? '' : map[i][j]);
-                state.cells[i + 1][j + 1].innerText = val;
+                state.cells[i][j].innerText = val;
                 if (val === 'X')
-                    state.cells[i + 1][j + 1].classList.add('goal');
+                    state.cells[i][j].classList.add('goal');
             }
     }
-    // function it(allLetters, itLetter) {
-    //     allLetters.forEach(function(v) {
-    //         v.onclick = clickHandler;
-    //         v.classList.remove('selected');
-    //     });
-    //     if (itLetter) {
-    //         itLetter.classList.add('selected');
-    //         itLetter.onclick = null;
-    //         itLetter.parentElement.removeChild(itLetter);
-    //     }
-    // }
-
 
 </script>
 </html>
