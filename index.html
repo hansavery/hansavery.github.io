@@ -106,21 +106,13 @@ tbody th {
 
 //-- state
 
-function Game() {
-    this.width = 100;
-    this.height = 100;
-    this.cells = null;
-    this.selected = null;
-    this.x = null;
-    this.y = null;
-    this.rowLabels = null;
-    this.colLabels = null;
-    this.corner = null;
+function Game(sheet) {
+    this.sheet = sheet;
 };
 
 
 Game.prototype.createClickHandler = function() {
-    state = this;
+    self = this;
     return function (event) {
         if (!event.target || event.target.nodeName !== 'TD')
             return;
@@ -133,26 +125,26 @@ Game.prototype.createClickHandler = function() {
             else if (event.target.classList.contains('colLabel'))
                 selectCol(event.target);
             else
-                selectCell(state, event.target);
+                self.sheet.selectCell(event.target);
         }
     };
 };
 
 
 Game.prototype.createKeyHandler = function() {
-    state = this;
+    self = this;
     directions = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
     return function keyHandler(event) {
         event = event || window.event;
         let key = event.key;
         if (directions.indexOf(key) !== -1) {
             let moveType = event.ctrlKey ? 'skip' : 'step';
-            moveSelection(state, key, moveType);
+            self.sheet.moveSelection(key, moveType);
             event.preventDefault();
             event.stopPropagation();
         }
         else if (key === 'Delete') {
-            state.selected.innerText = '';
+            self.sheet.selected.innerText = '';
             event.preventDefault();
             event.stopPropagation();
         }
@@ -160,7 +152,7 @@ Game.prototype.createKeyHandler = function() {
                  (  ('a' <= key && key <= 'z') ||
                     ('A' <= key && key <= 'Z') ||
                     ('0' <= key && key <= '9'))){
-            state.selected.innerText = key;
+            self.sheet.selected.innerText = key;
             event.preventDefault();
             event.stopPropagation();
         }
@@ -172,11 +164,21 @@ Game.prototype.createKeyHandler = function() {
 
 
 
-function Sheet() {}
+function Sheet() {
+    this.width = 100;
+    this.height = 100;
+    this.cells = null;
+    this.selected = null;
+    this.x = null;
+    this.y = null;
+    this.rowLabels = null;
+    this.colLabels = null;
+    this.corner = null;
+}
 
-Sheet.prototype.moveSelection = function(state, direction, moveType) {
-    let x = state.x;
-    let y = state.y;
+Sheet.prototype.moveSelection = function(direction, moveType) {
+    let x = this.x;
+    let y = this.y;
     let incrementX = 0;
     let incrementY = 0;
     if (direction === 'ArrowUp')
@@ -190,9 +192,9 @@ Sheet.prototype.moveSelection = function(state, direction, moveType) {
     x += incrementX;
     y += incrementY;
 
-    let startIsFilled = (state.selected.innerText !== '');
-    let lastCell = state.selected;
-    let nextCell = y < state.height && x< state.width && state.cells[y][x];
+    let startIsFilled = (this.selected.innerText !== '');
+    let lastCell = this.selected;
+    let nextCell = y < this.height && x< this.width && this.cells[y][x];
     let nextIsFilled = (nextCell && nextCell.innerText !== '');
     let stopCondition = !(startIsFilled && nextIsFilled);
 
@@ -215,128 +217,96 @@ Sheet.prototype.moveSelection = function(state, direction, moveType) {
         x += incrementX;
         y += incrementY;
         lastCell = nextCell;
-        nextCell = 0 <= y && y < state.height && 0 <= x && x < state.width && state.cells[y][x];
+        nextCell = 0 <= y && y < this.height && 0 <= x && x < this.width && this.cells[y][x];
     }
-    this.selectCell(state, nextCell || lastCell); // use the last if the next is undeifed
+    this.selectCell(nextCell || lastCell); // use the last if the next is undeifed
 };
 
 
-//--------- no globals
-    function moveSelection(state, direction, moveType) {
-        let x = state.x;
-        let y = state.y;
-        let incrementX = 0;
-        let incrementY = 0;
-        if (direction === 'ArrowUp')
-            incrementY = -1;
-        else if (direction === 'ArrowDown')
-            incrementY = 1;
-        else if (direction === 'ArrowLeft')
-            incrementX = -1;
-        else if (direction === 'ArrowRight')
-            incrementX = 1;
-        x += incrementX;
-        y += incrementY;
-
-        let startIsFilled = (state.selected.innerText !== '');
-        let lastCell = state.selected;
-        let nextCell = y < state.height && x< state.width && state.cells[y][x];
-        let nextIsFilled = (nextCell && nextCell.innerText !== '');
-        let stopCondition = !(startIsFilled && nextIsFilled);
-
-        let numberOfSteps = (moveType === 'skip' ? -1 : 1);
-        let stepsTaken = 0;
-
-        while (nextCell) {
-            // check steps within the loop in case we can't take a step w/o being OOB
-            stepsTaken += 1;
-            if (stepsTaken === numberOfSteps)
-                break;
-            
-            nextIsFilled = (nextCell.innerText !== '');
-            if (nextIsFilled === stopCondition) {
-                if (!stopCondition) // if stoppiing at end of filled row, clear nextCell so that lastCell is selected
-                    nextCell = null;
-                break;
-            }
-
-            x += incrementX;
-            y += incrementY;
-            lastCell = nextCell;
-            nextCell = 0 <= y && y < state.height && 0 <= x && x < state.width && state.cells[y][x];
-        }
-        selectCell(state, nextCell || lastCell); // use the last if the next is undeifed
+Sheet.prototype.selectCell = function(cell) {
+    if (cell === this.selected)
+        return;
+    else if (this.selected) {
+        this.selected.classList.remove('selected');
+        this.rowLabels[this.y].classList.remove('selected');
+        this.colLabels[this.x].classList.remove('selected');
     }
+    cell.classList.add('selected');
+    this.selected = cell;
+    coordinates = cell.id.split(',');
+    this.x = parseInt(coordinates[0] - 1);
+    this.y = parseInt(coordinates[1] - 1);
+    this.rowLabels[this.y].classList.add('selected')
+    this.colLabels[this.x].classList.add('selected')
+    cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+    if (this.selected.classList.contains('goal'))
+        alert('you win!');
+};
 
 
-    function selectCell(state, cell) {
-        if (cell === state.selected)
-            return;
-        else if (state.selected) {
-            state.selected.classList.remove('selected');
-            state.rowLabels[state.y].classList.remove('selected');
-            state.colLabels[state.x].classList.remove('selected');
+Sheet.prototype.loadMap = function(map) {
+    for (let i = 0; i < map.length && i < this.cells.length; i++)
+        for (let j = 0; j < map[i].length && j < this.cells[i].length; j++) {
+            val = (map[i][j] === ' ' ? '' : map[i][j]);
+            this.cells[i][j].innerText = val;
+            if (val === 'X')
+                this.cells[i][j].classList.add('goal');
         }
-        cell.classList.add('selected');
-        state.selected = cell;
-        coordinates = cell.id.split(',');
-        state.x = parseInt(coordinates[0] - 1);
-        state.y = parseInt(coordinates[1] - 1);
-        state.rowLabels[state.y].classList.add('selected')
-        state.colLabels[state.x].classList.add('selected')
-        cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
-        if (state.selected.classList.contains('goal'))
-            alert('you win!');
-    }
+};
 
 
-    function makeGrid(state, tbl) {
-        state.cells = [];
-        state.colLabels = [];
-        state.rowLabels = [];
-        
-        // make header
-        let header = document.createElement('thead');
-        tbl.appendChild(header);
-        let rowEl = document.createElement('tr');
 
-        // top corner
-        let cellEl = getCell('th', 0, 0, state.rowHeights[0], state.colWidths[0], 'corner', ' ');
+
+Sheet.prototype.makeGrid = function(tbl) {
+    this.cells = [];
+    this.colLabels = [];
+    this.rowLabels = [];
+    
+    // make header
+    let header = document.createElement('thead');
+    tbl.appendChild(header);
+    let rowEl = document.createElement('tr');
+
+    // top corner
+    let cellEl = getCell('th', 0, 0, this.rowHeights[0], this.colWidths[0], 'corner', ' ');
+    rowEl.appendChild(cellEl);
+    this.corner = cellEl
+
+    // rest of header row
+    for (let h = 1; h < this.width + 1; h++) {
+        cellEl = getCell('th', h, 0, this.rowHeights[0], this.colWidths[h], 'colLabel', getLetterCode(h));
         rowEl.appendChild(cellEl);
-        state.corner = cellEl
-
-        // rest of header row
-        for (let h = 1; h < state.width + 1; h++) {
-            cellEl = getCell('th', h, 0, state.rowHeights[0], state.colWidths[h], 'colLabel', getLetterCode(h));
-            rowEl.appendChild(cellEl);
-            state.colLabels.push(cellEl);
-        }
-        header.appendChild(rowEl);
-        
-        // data rows
-        let body = document.createElement('tbody');
-        tbl.appendChild(body)
-        for (let i = 1; i < state.height + 1; i++) {
-            rowEl = document.createElement('tr');
-            
-            // make row header
-            cellEl = getCell('th', 0, i, state.rowHeights[i], state.colWidths[0], 'rowLabel', i);
-            rowEl.appendChild(cellEl);
-            state.rowLabels.push(cellEl);
-
-            // fill row
-            let row = []
-            for (let j = 1; j < state.width + 1; j++) {
-                cellEl = getCell('td', j, i, state.rowHeights[i], state.colWidths[j], 'cell', '');
-                rowEl.appendChild(cellEl);
-                row.push(cellEl);
-            }
-
-            body.appendChild(rowEl);
-            state.cells.push(row);
-        }        
+        this.colLabels.push(cellEl);
     }
+    header.appendChild(rowEl);
+    
+    // data rows
+    let body = document.createElement('tbody');
+    tbl.appendChild(body)
+    for (let i = 1; i < this.height + 1; i++) {
+        rowEl = document.createElement('tr');
+        
+        // make row header
+        cellEl = getCell('th', 0, i, this.rowHeights[i], this.colWidths[0], 'rowLabel', i);
+        rowEl.appendChild(cellEl);
+        this.rowLabels.push(cellEl);
 
+        // fill row
+        let row = []
+        for (let j = 1; j < this.width + 1; j++) {
+            cellEl = getCell('td', j, i, this.rowHeights[i], this.colWidths[j], 'cell', '');
+            rowEl.appendChild(cellEl);
+            row.push(cellEl);
+        }
+
+        body.appendChild(rowEl);
+        this.cells.push(row);
+    }        
+};
+
+
+
+//--------- no globals
 
     function getCell(type, h, v, height, width, cssClass, text) {
         let cellEl = document.createElement(type);
@@ -362,15 +332,6 @@ Sheet.prototype.moveSelection = function(state, direction, moveType) {
     }
 
 
-    function loadMap(state, map) {
-        for (let i = 0; i < map.length && i < state.cells.length; i++)
-            for (let j = 0; j < map[i].length && j < state.cells[i].length; j++) {
-                val = (map[i][j] === ' ' ? '' : map[i][j]);
-                state.cells[i][j].innerText = val;
-                if (val === 'X')
-                    state.cells[i][j].classList.add('goal');
-            }
-    }
 
 
 
@@ -388,17 +349,16 @@ Sheet.prototype.moveSelection = function(state, direction, moveType) {
     });
 
 
-    let sheetGame = new Game();
-    sheetGame.rowHeights = new Array(sheetGame.height + 1).fill('1.5em');
-    sheetGame.colWidths = new Array(sheetGame.width + 1).fill('2.5em');
-
-
+    let sheet = new Sheet();
     var tbl = document.getElementById('tbl');
-    makeGrid(sheetGame, tbl);
-    loadMap(sheetGame, LEVELS[0]);
-    selectCell(sheetGame, sheetGame.cells[0][0]);
+    sheet.rowHeights = new Array(sheet.height + 1).fill('1.5em');
+    sheet.colWidths = new Array(sheet.width + 1).fill('2.5em');
+    sheet.makeGrid(tbl);
+    sheet.loadMap(LEVELS[0]);
+    sheet.selectCell(sheet.cells[0][0]);
 
 
+    let sheetGame = new Game(sheet);
     tbl.onclick = sheetGame.createClickHandler();
     window.addEventListener('keydown', sheetGame.createKeyHandler(), false);
 
