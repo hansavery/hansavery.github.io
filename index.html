@@ -19,7 +19,7 @@
     h1 div {display: inline; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
 
 
-    #tblcontainer {position: relative; overflow: scroll; height: 80vh; width: 95vw;}
+    #tblcontainer {position: relative; overflow: scroll; height: 80vh; width: 100%;}
     table {position: relative; border-collapse: collapse; border: 0.5px solid black; font-family: sans-serif; white-space: nowrap; line-height: 1.4em;} /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
     td {text-align: center; padding: 0; min-width: 2.5em;}
     th {text-align: center; padding: 0;}
@@ -100,6 +100,7 @@ tbody th {
 
 
 </style>
+<script src="./levels.js"></script>
 <script>
     let headEl = document.getElementById("header");
     let headText = headEl.innerText.split('');
@@ -113,7 +114,7 @@ tbody th {
 
 
     let STATE = {
-        width: 200,
+        width: 100,
         height: 100,
         cells: null,
         selected: null,
@@ -128,50 +129,7 @@ tbody th {
 
     var tbl = document.getElementById('tbl')
     makeGrid(STATE, tbl);
-    loadMap(STATE, ['     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
-                    '                                                             ',
-                    '                                                  X          ']);
+    loadMap(STATE, LEVELS[0]);
     selectCell(STATE, STATE.cells[0][0]);
 
 
