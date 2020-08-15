@@ -106,8 +106,18 @@ tbody th {
 
 //-- state
 
-function Game(sheet) {
-    this.sheet = sheet;
+function Game() {
+    this.sheet = new Sheet();
+    this.sheet.loadMap(LEVELS[0]);
+    this.sheet.selectCell(0, 0);
+
+    const tbl = document.getElementById('tbl');
+    this.view = new View(this.sheet, tbl);
+    this.view.makeGrid();
+    this.view.paint();
+
+    tbl.onclick = this.createClickHandler();
+    window.addEventListener('keydown', this.createKeyHandler(), false);
 };
 
 
@@ -125,7 +135,9 @@ Game.prototype.createClickHandler = function() {
             else if (event.target.classList.contains('colLabel'))
                 selectCol(event.target);
             else
-                self.sheet.selectCell(event.target);
+                target = self.view.translateTarget(event.target);
+                self.sheet.selectCell(target.x, target.y);
+                self.view.paint();
         }
     };
 };
@@ -156,29 +168,32 @@ Game.prototype.createKeyHandler = function() {
             event.preventDefault();
             event.stopPropagation();
         }
+        self.view.paint();
     };
 };
 
 
 //--------fundef
 
-
+function Point(x, y, value) {
+    this.x = x;
+    this.y = y;
+    this.value = value;
+}
 
 function Sheet() {
-    this.width = 100;
-    this.height = 100;
     this.cells = null;
-    this.selected = null;
+    this.height = null;
+    this.width = null;
     this.x = null;
     this.y = null;
-    this.rowLabels = null;
-    this.colLabels = null;
-    this.corner = null;
+    this.selected = new Point(null, null);
 }
 
 Sheet.prototype.moveSelection = function(direction, moveType) {
-    let x = this.x;
-    let y = this.y;
+    let h = this.x;
+    let v = this.y;
+
     let incrementX = 0;
     let incrementY = 0;
     if (direction === 'ArrowUp')
@@ -189,13 +204,13 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
         incrementX = -1;
     else if (direction === 'ArrowRight')
         incrementX = 1;
-    x += incrementX;
-    y += incrementY;
+    h += incrementX;
+    v += incrementY;
 
-    let startIsFilled = (this.selected.innerText !== '');
+    let startIsFilled = (this.selected.value !== '');
     let lastCell = this.selected;
-    let nextCell = y < this.height && x< this.width && this.cells[y][x];
-    let nextIsFilled = (nextCell && nextCell.innerText !== '');
+    let nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Point(h, v, this.cells[v][h]);
+    let nextIsFilled = (nextCell && nextCell.value !== '');
     let stopCondition = !(startIsFilled && nextIsFilled);
 
     let numberOfSteps = (moveType === 'skip' ? -1 : 1);
@@ -207,64 +222,80 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
         if (stepsTaken === numberOfSteps)
             break;
         
-        nextIsFilled = (nextCell.innerText !== '');
+        nextIsFilled = (nextCell.value !== '');
         if (nextIsFilled === stopCondition) {
             if (!stopCondition) // if stoppiing at end of filled row, clear nextCell so that lastCell is selected
                 nextCell = null;
             break;
         }
 
-        x += incrementX;
-        y += incrementY;
+        h += incrementX;
+        v += incrementY;
         lastCell = nextCell;
-        nextCell = 0 <= y && y < this.height && 0 <= x && x < this.width && this.cells[y][x];
+        nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Point(h, v, this.cells[v][h]);
     }
-    this.selectCell(nextCell || lastCell); // use the last if the next is undeifed
+    this.selectPoint(nextCell || lastCell); // use the last if the next is undefined
+};
+
+Sheet.prototype.selectPoint = function(point) {
+    this.x = point.x;
+    this.y = point.y;
+    this.selected = point;
 };
 
 
-Sheet.prototype.selectCell = function(cell) {
-    if (cell === this.selected)
+Sheet.prototype.selectCell = function(x, y) {
+    if (this.x == x && this.y == y)
         return;
-    else if (this.selected) {
-        this.selected.classList.remove('selected');
-        this.rowLabels[this.y].classList.remove('selected');
-        this.colLabels[this.x].classList.remove('selected');
-    }
-    cell.classList.add('selected');
-    this.selected = cell;
-    coordinates = cell.id.split(',');
-    this.x = parseInt(coordinates[0] - 1);
-    this.y = parseInt(coordinates[1] - 1);
-    this.rowLabels[this.y].classList.add('selected')
-    this.colLabels[this.x].classList.add('selected')
-    cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
-    if (this.selected.classList.contains('goal'))
-        alert('you win!');
+    this.x = x;
+    this.y = y;
+    this.selected = new Point(x, y, this.cells[y][x]);
 };
-
 
 Sheet.prototype.loadMap = function(map) {
-    for (let i = 0; i < map.length && i < this.cells.length; i++)
-        for (let j = 0; j < map[i].length && j < this.cells[i].length; j++) {
-            val = (map[i][j] === ' ' ? '' : map[i][j]);
-            this.cells[i][j].innerText = val;
-            if (val === 'X')
-                this.cells[i][j].classList.add('goal');
-        }
+    this.cells = [];
+    this.height = map.length;
+    this.width = 0;
+    for (let i = 0; i < map.length; i++) {
+        let row = []
+        this.width = Math.max(this.width, map[i].length);
+        for (let j = 0; j < map[i].length; j++)
+            row.push(map[i][j] === ' ' ? '' : map[i][j]);
+        this.cells.push(row);
+    }
 };
 
 
 
 
-Sheet.prototype.makeGrid = function(tbl) {
+
+
+//--------- no globals
+
+
+function View(sheet, tbl) {
+    this.cells = null;
+    this.selected = null;
+    this.rowLabels = null;
+    this.colLabels = null;
+    this.corner = null;
+
+    this.tbl = tbl;
+    this.sheet = sheet;
+    this.rowHeights = new Array(sheet.height + 1).fill('1.5em');
+    this.colWidths = new Array(sheet.width + 1).fill('2.5em');
+
+}
+
+
+View.prototype.makeGrid = function() {
     this.cells = [];
     this.colLabels = [];
     this.rowLabels = [];
     
     // make header
     let header = document.createElement('thead');
-    tbl.appendChild(header);
+    this.tbl.appendChild(header);
     let rowEl = document.createElement('tr');
 
     // top corner
@@ -273,7 +304,7 @@ Sheet.prototype.makeGrid = function(tbl) {
     this.corner = cellEl
 
     // rest of header row
-    for (let h = 1; h < this.width + 1; h++) {
+    for (let h = 1; h < this.sheet.width + 1; h++) {
         cellEl = getCell('th', h, 0, this.rowHeights[0], this.colWidths[h], 'colLabel', getLetterCode(h));
         rowEl.appendChild(cellEl);
         this.colLabels.push(cellEl);
@@ -282,8 +313,8 @@ Sheet.prototype.makeGrid = function(tbl) {
     
     // data rows
     let body = document.createElement('tbody');
-    tbl.appendChild(body)
-    for (let i = 1; i < this.height + 1; i++) {
+    this.tbl.appendChild(body)
+    for (let i = 1, v = 0; i < this.sheet.height + 1; i++, v++) {
         rowEl = document.createElement('tr');
         
         // make row header
@@ -293,8 +324,11 @@ Sheet.prototype.makeGrid = function(tbl) {
 
         // fill row
         let row = []
-        for (let j = 1; j < this.width + 1; j++) {
-            cellEl = getCell('td', j, i, this.rowHeights[i], this.colWidths[j], 'cell', '');
+        for (let j = 1, h = 0; j < this.sheet.width + 1; j++, h++) {
+            cellEl = getCell('td', h, v, this.rowHeights[i], this.colWidths[j], 'cell', '');
+            cellEl.innerText = this.sheet.cells[v][h];
+            if (cellEl.innerText == 'X')
+                cellEl.classList.add('goal');
             rowEl.appendChild(cellEl);
             row.push(cellEl);
         }
@@ -302,12 +336,8 @@ Sheet.prototype.makeGrid = function(tbl) {
         body.appendChild(rowEl);
         this.cells.push(row);
     }        
-};
 
-
-
-//--------- no globals
-
+    // functions used above
     function getCell(type, h, v, height, width, cssClass, text) {
         let cellEl = document.createElement(type);
         cellEl.style.minheight = height;
@@ -317,7 +347,6 @@ Sheet.prototype.makeGrid = function(tbl) {
         cellEl.innerText = text;
         return cellEl;
     }
-
 
     function getLetterCode(num) {
         let code = [];
@@ -330,37 +359,44 @@ Sheet.prototype.makeGrid = function(tbl) {
         code.reverse();
         return code.join('');
     }
+};
+
+
+View.prototype.paint = function() {
+    let cell = this.cells[this.sheet.y][this.sheet.x];
+    if (cell === this.selected)
+        return;
+    else if (this.selected) {
+        this.selected.classList.remove('selected');
+        const priorCoordinates = this.selected.id.split(',')
+        const priorx = parseInt(priorCoordinates[0]);
+        const priory = parseInt(priorCoordinates[1]);
+
+        this.rowLabels[priory].classList.remove('selected');
+        this.colLabels[priorx].classList.remove('selected');
+    }
+    cell.classList.add('selected');
+    this.selected = cell;
+    coordinates = cell.id.split(',');
+    const x = parseInt(coordinates[0]);
+    const y = parseInt(coordinates[1]);
+    this.rowLabels[y].classList.add('selected')
+    this.colLabels[x].classList.add('selected')
+    cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+    if (this.selected.classList.contains('goal'))
+        alert('you win!');
+};
+
+
+View.prototype.translateTarget = function(target) {
+    coords = target.id.split(',');
+    return new Point(parseInt(coords[0]), parseInt(coords[1]));
+};
 
 
 
 
-
-
-
-
-    let headEl = document.getElementById("header");
-    let headText = headEl.innerText.split('');
-    headEl.innerText = "";
-    let chars = headText.map(function(v, i, a) {
-        let s = document.createElement('div');
-        s.innerText = v;
-        headEl.appendChild(s);
-        return s;
-    });
-
-
-    let sheet = new Sheet();
-    var tbl = document.getElementById('tbl');
-    sheet.rowHeights = new Array(sheet.height + 1).fill('1.5em');
-    sheet.colWidths = new Array(sheet.width + 1).fill('2.5em');
-    sheet.makeGrid(tbl);
-    sheet.loadMap(LEVELS[0]);
-    sheet.selectCell(sheet.cells[0][0]);
-
-
-    let sheetGame = new Game(sheet);
-    tbl.onclick = sheetGame.createClickHandler();
-    window.addEventListener('keydown', sheetGame.createKeyHandler(), false);
+const sheetGame = new Game();
 
 
 
