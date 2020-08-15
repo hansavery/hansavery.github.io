@@ -64,7 +64,7 @@
     }
 
 
-    .selected {background-color: green;}
+    td.selected {outline: .3em solid green; outline-offset: -.15em;}
     .rowLabel.selected {background-color: darkgray;}
     .colLabel.selected {background-color: darkgray;}
 
@@ -109,7 +109,7 @@ tbody th {
 function Game() {
     this.sheet = new Sheet();
     this.sheet.loadMap(LEVELS[0]);
-    this.sheet.selectCell(0, 0);
+    this.sheet.selectXY(0, 0);
 
     const tbl = document.getElementById('tbl');
     this.view = new View(this.sheet, tbl);
@@ -136,7 +136,7 @@ Game.prototype.createClickHandler = function() {
                 selectCol(event.target);
             else
                 target = self.view.translateTarget(event.target);
-                self.sheet.selectCell(target.x, target.y);
+                self.sheet.selectXY(target.x, target.y);
                 self.view.paint();
         }
     };
@@ -156,7 +156,8 @@ Game.prototype.createKeyHandler = function() {
             event.stopPropagation();
         }
         else if (key === 'Delete') {
-            self.sheet.selected.innerText = '';
+            self.sheet.updateSelectedCellValue('');
+            self.view.updateCellValue('');
             event.preventDefault();
             event.stopPropagation();
         }
@@ -164,7 +165,8 @@ Game.prototype.createKeyHandler = function() {
                  (  ('a' <= key && key <= 'z') ||
                     ('A' <= key && key <= 'Z') ||
                     ('0' <= key && key <= '9'))){
-            self.sheet.selected.innerText = key;
+            self.sheet.updateSelectedCellValue(key);
+            self.view.updateCellValue(key);
             event.preventDefault();
             event.stopPropagation();
         }
@@ -175,7 +177,12 @@ Game.prototype.createKeyHandler = function() {
 
 //--------fundef
 
-function Point(x, y, value) {
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
+function Cell(x, y, value) {
     this.x = x;
     this.y = y;
     this.value = value;
@@ -187,7 +194,7 @@ function Sheet() {
     this.width = null;
     this.x = null;
     this.y = null;
-    this.selected = new Point(null, null);
+    this.selected = null;
 }
 
 Sheet.prototype.moveSelection = function(direction, moveType) {
@@ -209,7 +216,7 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
 
     let startIsFilled = (this.selected.value !== '');
     let lastCell = this.selected;
-    let nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Point(h, v, this.cells[v][h]);
+    let nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Cell(h, v, this.cells[v][h]);
     let nextIsFilled = (nextCell && nextCell.value !== '');
     let stopCondition = !(startIsFilled && nextIsFilled);
 
@@ -232,19 +239,19 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
         h += incrementX;
         v += incrementY;
         lastCell = nextCell;
-        nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Point(h, v, this.cells[v][h]);
+        nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Cell(h, v, this.cells[v][h]);
     }
-    this.selectPoint(nextCell || lastCell); // use the last if the next is undefined
+    this.selectCell(nextCell || lastCell); // use the last if the next is undefined
 };
 
-Sheet.prototype.selectPoint = function(point) {
-    this.x = point.x;
-    this.y = point.y;
-    this.selected = point;
+Sheet.prototype.selectCell = function(cell) {
+    this.x = cell.x;
+    this.y = cell.y;
+    this.selected = cell;
 };
 
 
-Sheet.prototype.selectCell = function(x, y) {
+Sheet.prototype.selectXY = function(x, y) {
     if (this.x == x && this.y == y)
         return;
     this.x = x;
@@ -266,8 +273,10 @@ Sheet.prototype.loadMap = function(map) {
 };
 
 
-
-
+Sheet.prototype.updateSelectedCellValue = function(str) {
+    this.selected.value = str;
+    this.cells[this.y][this.x] = str;
+;}
 
 
 //--------- no globals
@@ -394,7 +403,9 @@ View.prototype.translateTarget = function(target) {
 };
 
 
-
+View.prototype.updateCellValue = function(str) {
+    this.selected.innerText = str;
+};
 
 const sheetGame = new Game();
 
