@@ -108,11 +108,11 @@ tbody th {
 
 function Game() {
     this.sheet = new Sheet();
-    this.sheet.loadMap(LEVELS[0]);
+    this.sheet.loadLevel(LEVELS[0]);
     this.sheet.selectXY(0, 0);
 
-    const tbl = document.getElementById('tbl');
-    this.view = new View(this.sheet, tbl);
+    const tblcontainer = document.getElementById('tblcontainer');
+    this.view = new View(this.sheet, tblcontainer);
     this.view.makeGrid();
     this.view.paint();
 
@@ -175,18 +175,12 @@ Game.prototype.createKeyHandler = function() {
 };
 
 
-//--------fundef
-
-function Point(x, y) {
-    this.x = x;
-    this.y = y;
-}
-
 function Cell(x, y, value) {
     this.x = x;
     this.y = y;
     this.value = value;
 }
+
 
 function Sheet() {
     this.cells = null;
@@ -196,6 +190,7 @@ function Sheet() {
     this.y = null;
     this.selected = null;
 }
+
 
 Sheet.prototype.moveSelection = function(direction, moveType) {
     let h = this.x;
@@ -214,10 +209,10 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
     h += incrementX;
     v += incrementY;
 
-    let startIsFilled = (this.selected.value !== '');
+    let startIsFilled = (this.selected.value !== ' ');
     let lastCell = this.selected;
     let nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Cell(h, v, this.cells[v][h]);
-    let nextIsFilled = (nextCell && nextCell.value !== '');
+    let nextIsFilled = (nextCell && nextCell.value !== ' ');
     let stopCondition = !(startIsFilled && nextIsFilled);
 
     let numberOfSteps = (moveType === 'skip' ? -1 : 1);
@@ -229,7 +224,7 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
         if (stepsTaken === numberOfSteps)
             break;
         
-        nextIsFilled = (nextCell.value !== '');
+        nextIsFilled = (nextCell.value !== ' ');
         if (nextIsFilled === stopCondition) {
             if (!stopCondition) // if stoppiing at end of filled row, clear nextCell so that lastCell is selected
                 nextCell = null;
@@ -243,6 +238,7 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
     }
     this.selectCell(nextCell || lastCell); // use the last if the next is undefined
 };
+
 
 Sheet.prototype.selectCell = function(cell) {
     this.x = cell.x;
@@ -259,37 +255,36 @@ Sheet.prototype.selectXY = function(x, y) {
     this.selected = new Point(x, y, this.cells[y][x]);
 };
 
-Sheet.prototype.loadMap = function(map) {
-    this.cells = [];
-    this.height = map.length;
-    this.width = 0;
-    for (let i = 0; i < map.length; i++) {
-        let row = []
-        this.width = Math.max(this.width, map[i].length);
-        for (let j = 0; j < map[i].length; j++)
-            row.push(map[i][j] === ' ' ? '' : map[i][j]);
-        this.cells.push(row);
-    }
+
+Sheet.prototype.loadLevel = function(level) {
+    this.cells = level;
+    this.height = level.length;
+    this.width = level.reduce((lastMax, row) => Math.max(lastMax, row.length), 0);
 };
 
 
 Sheet.prototype.updateSelectedCellValue = function(str) {
     this.selected.value = str;
     this.cells[this.y][this.x] = str;
-;}
+};
 
 
 //--------- no globals
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+}
 
 
-function View(sheet, tbl) {
+function View(sheet, tblContainer) {
     this.cells = null;
     this.selected = null;
     this.rowLabels = null;
     this.colLabels = null;
     this.corner = null;
 
-    this.tbl = tbl;
+    this.tblContainer = tblContainer;
+    this.tbl = tblContainer.children[0];
     this.sheet = sheet;
     this.rowHeights = new Array(sheet.height + 1).fill('1.5em');
     this.colWidths = new Array(sheet.width + 1).fill('2.5em');
@@ -391,10 +386,26 @@ View.prototype.paint = function() {
     const y = parseInt(coordinates[1]);
     this.rowLabels[y].classList.add('selected')
     this.colLabels[x].classList.add('selected')
-    cell.scrollIntoView({behavior: 'auto', block: 'center', inline: 'center'});
+    scrollSelection(cell, this.tblContainer, this.rowLabels, this.colLabels);
     if (this.selected.classList.contains('goal'))
         alert('you win!');
-};
+
+
+
+    function scrollSelection(cell, container, rowLabels, colLabels) {
+        labelHeight = colLabels[0].clientHeight;
+        if (container.scrollTop > cell.offsetTop - labelHeight)
+            container.scrollTop = cell.offsetTop - labelHeight;
+        else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
+            container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
+        
+        labelWidth = rowLabels[0].clientWidth;
+        if (container.scrollLeft > cell.offsetLeft - labelWidth)
+            container.scrollLeft = cell.offsetLeft - labelWidth;
+        else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
+            container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;
+    }
+    };
 
 
 View.prototype.translateTarget = function(target) {
