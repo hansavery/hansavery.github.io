@@ -1,5 +1,5 @@
 LEVELS = [
-   ['     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
+   [' X   xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
@@ -42,7 +42,7 @@ LEVELS = [
     '                                                             ',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
     '                                                             ',
-    '                                                  X          ',
+    '                                                             ',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
     '     xxxx       xxxx    x x x x x x x x x x x x      xxxxxxxx',
