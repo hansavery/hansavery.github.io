@@ -1,14 +1,16 @@
-function Game() {
+function Game(level) {
+    this.levels = LEVELS;
     this.sheet = new Sheet();
     const tblcontainer = document.getElementById('tblcontainer');
     this.tbl = tblcontainer.children[0];
     this.view = new View(this.sheet, tblcontainer);
-    this.startGame();
+    this.level = level;
+    this.startGame(level);
 };
 
 
 Game.prototype.startGame = function(level) {
-    this.sheet.loadLevel(LEVELS[0]);
+    this.sheet.loadLevel(this.levels[level]);
     this.sheet.selectXY(0, 0);
 
     this.view.makeGrid();
@@ -86,23 +88,29 @@ Game.prototype.checkForWin = function() {
 
 
 Game.prototype.showGame = function() {
+    document.getElementById('winMenu').onclick = null;
     document.getElementById('winMenu').style.visibility = 'hidden';
     document.getElementById('winMenu').style.display = 'none';
     document.getElementById('tbl').style.visibility = 'visible';
     document.getElementById('tbl').style.display = 'inline-block';
     document.getElementById('tblcontainer').style.overflow = 'scroll';
-    this.startGame();
+    this.startGame(this.level);
 };
 
 
 Game.prototype.showWin = function() {
+    this.level += 1;
     document.getElementById('winMenu').style.visibility = 'visible';
     document.getElementById('winMenu').style.display = 'inline-block';
     document.getElementById('tbl').style.visibility = 'hidden';
     document.getElementById('tbl').style.display = 'none';
     document.getElementById('tblcontainer').style.overflow = 'hidden';
-    document.getElementById('winMenu').onclick = this.showGame.bind(this);
+    if (this.level < this.levels.length) {
+        document.getElementById('winMenu').onclick = this.showGame.bind(this);
+    }
+    else
+        document.getElementById('winMenu').innerText = 'yay';
 };
 
 
-const sheetGame = new Game();
+const sheetGame = new Game(0);
