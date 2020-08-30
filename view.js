@@ -147,4 +147,5 @@ View.prototype.updateCellValue = function(str) {
 View.prototype.tearDown = function() {
     while (this.tbl.childNodes.length > 0)
         this.tbl.removeChild(this.tbl.childNodes[0]);
+    this.selected = null;
 };

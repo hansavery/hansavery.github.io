@@ -5,7 +5,9 @@ function Game(level) {
     this.tbl = tblcontainer.children[0];
     this.view = new View(this.sheet, tblcontainer);
     this.level = level;
-    this.startGame(level);
+    
+    callback = this.showGame.bind(this, level);
+    this.showPopover('Click here to race', callback);
 };
 
 
@@ -87,29 +89,43 @@ Game.prototype.checkForWin = function() {
 };
 
 
-Game.prototype.showGame = function() {
-    document.getElementById('winMenu').onclick = null;
-    document.getElementById('winMenu').style.visibility = 'hidden';
-    document.getElementById('winMenu').style.display = 'none';
-    document.getElementById('tbl').style.visibility = 'visible';
-    document.getElementById('tbl').style.display = 'inline-block';
-    document.getElementById('tblcontainer').style.overflow = 'scroll';
-    this.startGame(this.level);
+Game.prototype.showPopover = function(message, onclick) {
+    popover = document.getElementById('popover');
+    popover.style.visibility = 'visible';
+    popover.style.display = 'inline-block';
+    popover.onclick = onclick;
+    
+    document.getElementById('popoverHeader').innerText = message
+
+    tbl = document.getElementById('tbl')
+    tbl.style.visibility = 'hidden';
+    tbl.style.display = 'none';
+    tbl.parentElement.style.overflow = 'hidden';
 };
 
 
+Game.prototype.showGame = function(level) {
+    popover = document.getElementById('popover');
+    popover.style.visibility = 'hidden';
+    popover.style.display = 'none';
+    popover.onclick = null;
+    
+    tbl = document.getElementById('tbl')
+    tbl.style.visibility = 'visible';
+    tbl.style.display = 'inline-block';
+    tbl.parentElement.style.overflow = 'scroll';
+
+    this.startGame(level);
+};
+
 Game.prototype.showWin = function() {
     this.level += 1;
-    document.getElementById('winMenu').style.visibility = 'visible';
-    document.getElementById('winMenu').style.display = 'inline-block';
-    document.getElementById('tbl').style.visibility = 'hidden';
-    document.getElementById('tbl').style.display = 'none';
-    document.getElementById('tblcontainer').style.overflow = 'hidden';
     if (this.level < this.levels.length) {
-        document.getElementById('winMenu').onclick = this.showGame.bind(this);
+        callback = this.showGame.bind(this, this.level);
+        this.showPopover('you win!', callback);
     }
     else
-        document.getElementById('winMenu').innerText = 'yay';
+        this.showPopover('yay!', null);
 };
 
 
