@@ -96,7 +96,7 @@ View.prototype.makeGrid = function() {
 
 
 View.prototype.paint = function() {
-    let cell = this.cells[this.sheet.selected.y][this.sheet.selected.x];
+    const cell = this.cells[this.sheet.selected.y][this.sheet.selected.x];
     if (cell === this.selected)
         return;
     else if (this.selected) {
@@ -110,7 +110,7 @@ View.prototype.paint = function() {
     }
     cell.classList.add('selected');
     this.selected = cell;
-    coordinates = cell.id.split(',');
+    const coordinates = cell.id.split(',');
     const x = parseInt(coordinates[0]);
     const y = parseInt(coordinates[1]);
     this.rowLabels[y].classList.add('selected')
@@ -118,13 +118,13 @@ View.prototype.paint = function() {
     scrollSelection(cell, this.tblContainer, this.rowLabels, this.colLabels);
 
     function scrollSelection(cell, container, rowLabels, colLabels) {
-        labelHeight = colLabels[0].clientHeight;
+        const labelHeight = colLabels[0].clientHeight;
         if (container.scrollTop > cell.offsetTop - labelHeight)
             container.scrollTop = cell.offsetTop - labelHeight;
         else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
             container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
 
-        labelWidth = rowLabels[0].clientWidth;
+        const labelWidth = rowLabels[0].clientWidth;
         if (container.scrollLeft > cell.offsetLeft - labelWidth)
             container.scrollLeft = cell.offsetLeft - labelWidth;
         else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
@@ -134,7 +134,7 @@ View.prototype.paint = function() {
 
 
 View.prototype.translateTarget = function(target) {
-    coords = target.id.split(',');
+    const coords = target.id.split(',');
     return new Point(parseInt(coords[0]), parseInt(coords[1]));
 };
 
