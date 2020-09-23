@@ -95,5 +95,9 @@ Sheet.prototype.loadLevel = function(level) {
 
 Sheet.prototype.updateSelectedCellValue = function(str) {
     this.selected.value = str;
-    this.cells[this.selected.y][this.selected.x] = str;
+
+    const x = this.selected.x;
+    const y = this.selected.y;
+    const row = this.cells[y];
+    this.cells[y] = row.slice(0, x) + str + row.slice(x + 1);
 };
