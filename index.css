@@ -1,43 +1,58 @@
-body {overflow: hidden; margin: 1vw;}
-h1 {font-family: sans-serif; font-size: 5em; margin: 0;}
-h1 div {display: inline; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
-/* .text {margin-left: .3em;} */
+/*********************************************************
+Big picture layout
+*********************************************************/
+body {
+    overflow: hidden;
+    margin: 1vw;
+    display:flex;
+    flex-direction: column;
+    height:100vh;
+    font-family: serif;
+}
+
+h1 {
+    font-family: sans-serif;
+    font-size: 5em;
+    margin: 0;
+}
 
 #tblcontainer {
-    position: relative; overflow: scroll; height: 80vh; width: 100%; margin: 2em 0 0 0;
+    margin: 1em 0 0 0;
+    flex-grow: 1;
+    overflow: scroll;
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
 }
-table {position: relative; border-collapse: collapse; border: 0.5px solid black; font-family: sans-serif; white-space: nowrap; line-height: 1.4em;} /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
+
+#popover {
+    width: 100%;
+    height: calc(100% - 0.25em);
+    font: 3em sans-serif;
+    overflow: hidden;
+    outline: 0.2em solid black;
+    outline-offset: -0.25em;
+    vertical-align: middle;
+}
+
+#popoverHeader {
+    margin: 0.5em;
+}
+
+/*********************************************************
+Table layout
+*********************************************************/
+table {
+    position: relative; 
+    border-collapse: collapse;
+    /* border: 0.5px solid black; */
+    font-family: sans-serif;
+    white-space: nowrap;
+    line-height: 1.4em;
+} /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
 td {text-align: center; padding: 0; min-width: 2.5em;}
-th {text-align: center; padding: 0;}
-
-.goal {background-color: lightblue;}
-#goalExample {background-color: lightblue; width: 2.5em; border: 0.5px solid black; display: inline-block; text-align: center; font-family: sans-serif;}
-
-
-.cell {border: 0.5px solid gray;}
-.rowLabel {
-    background-color: lightgray;
-    border-color: black;
-    border-style: solid;
-    border-width: 0.5px 1px;
-}
-.colLabel {
-    background-color: lightgray;
-    border-color: black;
-    border-style: solid;
-    border-width: 1px 0.5px;
-}
-.corner {
-    background-color: lightgray;
-    border-color: black; 
-    border-style: solid; 
-    border-width: 1px;
-}
-
+th {text-align: center; padding: 0; min-width: 1.5em; padding: 0 0.25em 0 0.25em;}
 thead th {
     position: -webkit-sticky; /* for Safari */
     position: sticky;
@@ -55,21 +70,32 @@ tbody th {
     left: 0;
 }
 
+/*********************************************************
+Table styling
+*********************************************************/
+.cell {border: 0.5px solid gray;}
+.rowLabel {
+    background-color: lightgray;
+    border-style: none solid none none;
+    border-color: black;
+    border-width: 1px;
+}
+.colLabel {
+    background-color: lightgray;
+    border-style: none none solid none;
+    border-color: black;
+    border-width: 1px;
+}
+.corner {
+    background-color: lightgray;
+    /* border-style: none solid solid none; 
+    border-color: black; 
+    border-width: 1px; */
+}
+
+.goal {background-color: lightblue; border-color: black;}
+#goalExample {background-color: lightblue; width: 2.5em; border: 0.5px solid black; display: inline-block; text-align: center; font-family: sans-serif;}
 
 td.selected {outline: .3em solid green; outline-offset: -.15em;}
 .rowLabel.selected {background-color: darkgray;}
 .colLabel.selected {background-color: darkgray;}
-
-#popover {
-    height: 80vh; width: 100%;
-    font: 3em sans serif;
-    visibility: hidden;
-    display: none;
-    overflow: hidden;
-    outline: 0.2em solid black;
-    outline-offset: -0.25em;
-    vertical-align: middle;
-}
-#popoverHeader {
-    margin: 0.5em;
-}

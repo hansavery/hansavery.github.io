@@ -123,12 +123,12 @@ View.prototype.paint = function() {
             container.scrollTop = cell.offsetTop - labelHeight;
         else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
             container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
-        
+
         labelWidth = rowLabels[0].clientWidth;
         if (container.scrollLeft > cell.offsetLeft - labelWidth)
             container.scrollLeft = cell.offsetLeft - labelWidth;
         else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
-            container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;
+            container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;    
     }
 };
 

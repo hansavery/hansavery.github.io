@@ -91,8 +91,8 @@ Game.prototype.checkForWin = function() {
 
 Game.prototype.showPopover = function(message, onclick) {
     popover = document.getElementById('popover');
-    popover.style.visibility = 'visible';
-    popover.style.display = 'inline-block';
+    popover.style.visibility = null;
+    popover.style.display = null;
     popover.onclick = onclick;
     
     document.getElementById('popoverHeader').innerText = message
@@ -111,9 +111,9 @@ Game.prototype.showGame = function(level) {
     popover.onclick = null;
     
     tbl = document.getElementById('tbl')
-    tbl.style.visibility = 'visible';
-    tbl.style.display = 'inline-block';
-    tbl.parentElement.style.overflow = 'scroll';
+    tbl.style.visibility = null;
+    tbl.style.display = null;
+    tbl.parentElement.style.overflow = null;
 
     this.startGame(level);
 };
