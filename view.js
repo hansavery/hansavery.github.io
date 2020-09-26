@@ -4,7 +4,7 @@ function Point(x, y) {
 }
 
 
-function View(sheet, tblContainer) {
+function View(sheet, tblContainer, tbl) {
     this.cells = null;
     this.selected = null;
     this.rowLabels = null;
@@ -12,7 +12,7 @@ function View(sheet, tblContainer) {
     this.corner = null;
 
     this.tblContainer = tblContainer;
-    this.tbl = tblContainer.children[0];
+    this.tbl = tbl;
     this.sheet = sheet;
     this.rowHeights = new Array(sheet.height + 1).fill('1.5em');
     this.colWidths = new Array(sheet.width + 1).fill('2.5em');
@@ -118,18 +118,31 @@ View.prototype.paint = function() {
     scrollSelection(cell, this.tblContainer, this.rowLabels, this.colLabels);
 
     function scrollSelection(cell, container, rowLabels, colLabels) {
-        const labelHeight = colLabels[0].clientHeight;
-        if (container.scrollTop > cell.offsetTop - labelHeight)
-            container.scrollTop = cell.offsetTop - labelHeight;
-        else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
-            container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
+        const parts = cell.id.split(",");
+        const h = parseInt(parts[0]);
+        const v = parseInt(parts[1]);
 
-        const labelWidth = rowLabels[0].clientWidth;
-        if (container.scrollLeft > cell.offsetLeft - labelWidth)
-            container.scrollLeft = cell.offsetLeft - labelWidth;
-        else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
-            container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;    
+        if (v === 0)
+            container.scrollTop = 0;
+        else {
+            const labelHeight = colLabels[0].clientHeight;
+            if (container.scrollTop > cell.offsetTop - labelHeight)
+                container.scrollTop = cell.offsetTop - labelHeight;
+            else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
+                container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
+        }
+
+        if (h === 0)
+            container.scrollLeft = 0;
+        else {
+            const labelWidth = rowLabels[0].clientWidth;
+            if (container.scrollLeft > cell.offsetLeft - labelWidth)
+                container.scrollLeft = cell.offsetLeft - labelWidth;
+            else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
+                container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;        
+        }
     }
+
 };
 
 

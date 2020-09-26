@@ -76,15 +76,15 @@ Sheet.prototype.selectXY = function(x, y) {
 };
 
 
-Sheet.prototype.loadLevel = function(level) {
-    this.cells = level;
-    this.height = level.length;
-    this.width = level.reduce((lastMax, row) => Math.max(lastMax, row.length), 0);
-    this.selected = new Cell(0, 0, level[0][0]);
+Sheet.prototype.loadLevel = function(cells) {
+    this.cells = cells;
+    this.height = cells.length;
+    this.width = cells.reduce((lastMax, row) => Math.max(lastMax, row.length), 0);
+    this.selected = new Cell(0, 0, cells[0][0]);
 
-    for(var v = 0; v < level.length; v++)
-        for (var h = 0; h < level[v].length; h++)
-            if (level[v][h] == 'X') {
+    for(var v = 0; v < cells.length; v++)
+        for (var h = 0; h < cells[v].length; h++)
+            if (cells[v][h] == 'X') {
                 this.goal = new Point(h, v);
                 return;
             }
@@ -100,4 +100,9 @@ Sheet.prototype.updateSelectedCellValue = function(str) {
     const y = this.selected.y;
     const row = this.cells[y];
     this.cells[y] = row.slice(0, x) + str + row.slice(x + 1);
+};
+
+
+Sheet.prototype.export = function() {
+    return this.cells;
 };
