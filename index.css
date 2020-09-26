@@ -7,7 +7,6 @@ body {
     display:flex;
     flex-direction: column;
     height:100vh;
-    font-family: serif;
 }
 
 h1 {
@@ -20,16 +19,14 @@ h1 {
     margin: 1em 0 0 0;
     flex-grow: 1;
     overflow: scroll;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    user-select: none;
+    font-family: sans-serif;
+    position: relative;
 }
 
 #popover {
     width: 100%;
     height: calc(100% - 0.25em);
-    font: 3em sans-serif;
+    font-size: 1.75em;
     overflow: hidden;
     outline: 0.2em solid black;
     outline-offset: -0.25em;
@@ -46,7 +43,6 @@ Table layout
 table {
     position: relative; 
     border-collapse: collapse;
-    /* border: 0.5px solid black; */
     font-family: sans-serif;
     white-space: nowrap;
     line-height: 1.4em;
@@ -73,29 +69,36 @@ tbody th {
 /*********************************************************
 Table styling
 *********************************************************/
-.cell {border: 0.5px solid gray;}
+.cell {border: 0.5px solid lightgray;}
 .rowLabel {
     background-color: lightgray;
-    border-style: none solid none none;
-    border-color: black;
-    border-width: 1px;
 }
 .colLabel {
     background-color: lightgray;
-    border-style: none none solid none;
-    border-color: black;
-    border-width: 1px;
 }
 .corner {
     background-color: lightgray;
-    /* border-style: none solid solid none; 
-    border-color: black; 
-    border-width: 1px; */
 }
 
-.goal {background-color: lightblue; border-color: black;}
+.goal {background-color: lightblue; border: 1px solid black;}
 #goalExample {background-color: lightblue; width: 2.5em; border: 0.5px solid black; display: inline-block; text-align: center; font-family: sans-serif;}
 
 td.selected {outline: .3em solid green; outline-offset: -.15em;}
 .rowLabel.selected {background-color: darkgray;}
 .colLabel.selected {background-color: darkgray;}
+
+
+/*********************************************************
+Utility
+*********************************************************/
+.hidden {
+    display: none;
+    visibility: hidden;
+}
+
+.noselect {
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
