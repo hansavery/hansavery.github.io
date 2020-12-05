@@ -49,6 +49,7 @@ Timer.prototype.end = function() {
     this.update();
 }
 
+
 function Game(level) {
     this.levels = LEVELS;
     this.sheet = new Sheet();
@@ -60,7 +61,7 @@ function Game(level) {
     this.popover = document.getElementById('popover');
     this.popoverHeader = document.getElementById('popoverHeader');
 
-    callback = this.startLevel.bind(this, level);
+    callback = this.startGame.bind(this, level);
     this.showPopover('Click here to race', callback);
 };
 
@@ -80,6 +81,7 @@ Game.prototype.startGame = function(levelNumber) {
     document.onkeydown = this.createKeyHandler();
 
     this.startTime = Date.now();
+    this.showGame();
 };
 
 
@@ -177,15 +179,10 @@ Game.prototype.showGame = function() {
 };
 
 
-Game.prototype.startLevel = function(level) {
-    this.startGame(level)
-    this.showGame();
-};
-
 Game.prototype.showWin = function() {
     this.level += 1;
     if (this.level < this.levels.length) {
-        callback = this.startLevel.bind(this, this.level);
+        callback = this.startGame.bind(this, this.level);
         this.showPopover('you win! your time is ' + this.timer.text + ' the record is ' + this.currentLevelRecord, callback);
     }
     else
