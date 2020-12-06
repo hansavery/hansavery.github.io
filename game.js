@@ -63,10 +63,15 @@ function Game(level) {
 
     callback = this.startGame.bind(this, level);
     this.showPopover('Click here to race', callback);
+
+    this.mode = '';
 };
 
 
 Game.prototype.startGame = function(levelNumber) {
+    this.mode = 'play';
+    this.events = [];
+
     level = this.levels[levelNumber];
     this.sheet.loadLevel(level.cells);
     this.currentLevelRecord = level.record;
@@ -85,23 +90,51 @@ Game.prototype.startGame = function(levelNumber) {
 };
 
 
+Game.prototype.startEditor = function(x, y) {
+    this.mode = 'edit';
+    this.events = [];
+
+    cells = ['X' + ' '.repeat(x - 1)];
+    for (let i = 1; i < y; i++)
+        cells.push(' '.repeat(x));
+    this.sheet.loadLevel(cells);
+    this.currentLevelRecord = '00:01.001'
+    this.sheet.selectXY(0, 0);
+
+    this.view.makeGrid();
+    this.view.paint(0);
+
+    this.timer.start();
+
+    this.tbl.onclick = this.createClickHandler();
+    document.onkeydown = this.createKeyHandler();
+
+    this.startTime = Date.now();
+    this.showGame();
+};
+
 Game.prototype.createClickHandler = function() {
     self = this;
     return function (event) {
         if (!event.target || event.target.nodeName !== 'TD')
             return;
         if (event.shift) {
-            alert('not implemented yet')    
+            alert('not implemented yet');
         }
         else {
-            if (event.target.classList.contains('rowLabel'))
+            if (event.target.classList.contains('rowLabel')) {
                 selectRow(event.target);
-            else if (event.target.classList.contains('colLabel'))
+                self.events.push([Date.now(), 'selectRow', event.target.innerHTML]);
+            }
+            else if (event.target.classList.contains('colLabel')) {
                 selectCol(event.target);
+                self.events.push([Date.now(), 'selectCol', event.target.innerHTML]);
+            }
             else {
                 target = self.view.translateTarget(event.target);
                 self.sheet.selectXY(target.x, target.y);
                 self.view.paint(Date.now() - this.startTime);
+                self.events.push(Date.now(), 'selectCell', event.target.id);
                 self.checkForWin();
             }
         }
@@ -114,7 +147,9 @@ Game.prototype.createKeyHandler = function() {
     directions = ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']
     return function keyHandler(event) {
         event = event || window.event;
+        self.events.push(event)
         let key = event.key;
+        let keyCode = event.keyCode;
         if (directions.indexOf(key) !== -1) {
             let moveType = event.ctrlKey ? 'skip' : 'step';
             self.sheet.moveSelection(key, moveType);
@@ -132,22 +167,28 @@ Game.prototype.createKeyHandler = function() {
             event.stopPropagation();
         }
         else if (key === 'Delete') {
-            self.sheet.updateSelectedCellValue('');
-            self.view.updateCellValue('');
+            self.sheet.updateSelectedCellValue(' ');
+            self.view.updateCellValue(' ');
             event.preventDefault();
             event.stopPropagation();
         }
-        else if (key.length === 1 && !event.ctrlKey &&
-                 (  ('a' <= key && key <= 'z') ||
-                    ('A' <= key && key <= 'Z') ||
-                    ('0' <= key && key <= '9'))){
+        else if (key.length === 1 &&
+                 !event.ctrlKey &&
+                ( // the section in this parens group is with many thanks to https://stackoverflow.com/a/12467610/1861720
+                    (keyCode > 47 && keyCode < 58)   || // number keys
+                    (keyCode > 64 && keyCode < 91)   || // letter keys
+                    (keyCode > 95 && keyCode < 112)  || // numpad keys
+                    (keyCode > 185 && keyCode < 193) || // ;=,-./` (in order)
+                    (keyCode > 218 && keyCode < 223) || // [\]' (in order)
+                    keyCode === 32 // spacebar
+                )) {
             self.sheet.updateSelectedCellValue(key);
             self.view.updateCellValue(key);
             event.preventDefault();
             event.stopPropagation();
         }
         else if (DEBUG === true)
-            alert(key);
+            alert(key, keyCode);
         self.view.paint(Date.now() - this.startTime);
         self.checkForWin();
     };
@@ -155,7 +196,7 @@ Game.prototype.createKeyHandler = function() {
 
 
 Game.prototype.checkForWin = function() {
-    if (this.sheet.selected.x !== this.sheet.goal.x || this.sheet.selected.y !== this.sheet.goal.y)
+    if (this.sheet.selected.x !== this.sheet.goal.x || this.sheet.selected.y !== this.sheet.goal.y || this.mode === 'edit')
         return;
     this.timer.end();
     this.tbl.onclick = null;
@@ -203,8 +244,3 @@ Game.prototype.exportLevel = function() {
 
 
 const sheetGame = new Game(0);
-
-
-
-
-// save times in ms, convert on display!
