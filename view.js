@@ -59,9 +59,15 @@ View.prototype.makeGrid = function() {
         let row = []
         for (let j = 1, h = 0; j < this.sheet.width + 1; j++, h++) {
             cellEl = getCell('td', h, v, this.rowHeights[i], this.colWidths[j], 'cell', '');
-            cellEl.innerText = this.sheet.cells[v][h];
-            if (cellEl.innerText == 'X')
+            val = this.sheet.cells[v][h]
+            cellEl.innerText = val;
+            if (val == 'X')
                 cellEl.classList.add('goal');
+            else {
+                // let idx = CHARS.indexOf(val);
+                // cellEl.bgColor = COLORS[idx];
+                ;
+            }
             rowEl.appendChild(cellEl);
             row.push(cellEl);
         }
@@ -152,8 +158,109 @@ View.prototype.translateTarget = function(target) {
 };
 
 
+
+
+// https://stackoverflow.com/a/5624139
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+  
+  function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+  }
+
+
+// https://stackoverflow.com/a/17243070 with edits
+/* accepts parameters
+ * h  Object = {h:x, s:y, v:z}
+ * OR 
+ * h, s, v
+*/
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    r = Math.round(r * 255);
+    g = Math.round(g * 255);
+    b = Math.round(b * 255);
+    console.log(h, s, v, r, g, b);
+
+    return rgbToHex(r, g, b);
+}
+
+
+CHARS = '`1234567890-=qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>? ';
+COLORS = []
+let l = 1;
+let s = 0.4;
+for (let j = 0; j < 13; j++) { // remaining num row
+    h = j / 13;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+s = 0.6;
+for (let j = 0; j < 13; j++) { // qwer row
+    h = j / 13;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+s = 0.8;
+for (let j = 0; j < 11; j++) { // asdf row
+    h = j / 11;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+s = 1;
+for (let j = 0; j < 10; j++) { // zxcv row
+    h = j / 10;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+l = .8
+for (let j = 0; j < 13; j++) { // num row
+    h = j / 13;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+l = .6
+for (let j = 0; j < 13; j++) { // qwer row
+    h = j / 13;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+l = .4
+for (let j = 0; j < 11; j++) { // asdf row
+    h = j / 11;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+l = .2
+for (let j = 0; j < 10; j++) { // zxcv row
+    h = j / 10;
+    COLORS.push(HSVtoRGB(h, s, l));
+}
+COLORS.push('#ffffff');
+
+
 View.prototype.updateCellValue = function(str) {
     this.selected.innerText = str;
+    if (str == 'X')
+        this.selected.classList.add('goal');
+    else {
+        this.selected.classList.remove('goal');
+        // let idx = CHARS.indexOf(str);
+        // this.selected.bgColor = COLORS[idx];
+    }
+
+    
 };
 
 
