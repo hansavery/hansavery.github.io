@@ -3,10 +3,15 @@ Big picture layout
 *********************************************************/
 body {
     overflow: hidden;
-    margin: 1vw;
-    display:flex;
-    flex-direction: column;
-    height:100vh;
+    padding: 1vh 1vw;
+    /* height:100vh;
+    width: 100vw; */
+    height: 98vh;
+    width: 98vw;
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto auto 1fr;
 }
 
 h1 {
@@ -17,20 +22,15 @@ h1 {
 
 #gameContainer {
     margin: 1em 0 0 0;
-    flex-grow: 1;
-    overflow: scroll;
     font-family: sans-serif;
-    position: relative;
 }
 
 #popover {
-    width: 100%;
-    height: calc(100% - 0.25em);
-    font-size: 1.75em;
     overflow: hidden;
     outline: 0.2em solid black;
     outline-offset: -0.25em;
     vertical-align: middle;
+    height: 100%;
 }
 
 #popoverHeader {
@@ -47,8 +47,8 @@ table {
     white-space: nowrap;
     line-height: 1.4em;
 } /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
-td {text-align: center; padding: 0; min-width: 2.5em;}
-th {text-align: center; padding: 0; min-width: 1.5em; padding: 0 0.25em 0 0.25em;}
+td {text-align: center; padding: 0}
+th {text-align: center; padding: 0 0.25em 0 0.25em;}
 thead th {
     position: -webkit-sticky; /* for Safari */
     position: sticky;

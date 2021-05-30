@@ -77,6 +77,7 @@ Game.prototype.startGame = function(levelNumber) {
     this.currentLevelRecord = level.record;
     this.sheet.selectXY(0, 0);
 
+    this.showGame();
     this.view.makeGrid();
     this.view.paint(0);
 
@@ -86,7 +87,6 @@ Game.prototype.startGame = function(levelNumber) {
     document.onkeydown = this.createKeyHandler();
 
     this.startTime = Date.now();
-    this.showGame();
 };
 
 

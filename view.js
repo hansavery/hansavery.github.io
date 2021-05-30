@@ -4,7 +4,7 @@ function Point(x, y) {
 }
 
 
-function View(sheet, tblContainer, tbl) {
+function View(sheet, tblContainer, tbl, color) {
     this.cells = null;
     this.selected = null;
     this.rowLabels = null;
@@ -14,13 +14,21 @@ function View(sheet, tblContainer, tbl) {
     this.tblContainer = tblContainer;
     this.tbl = tbl;
     this.sheet = sheet;
-    this.rowHeights = new Array(sheet.height + 1).fill('1.5em');
-    this.colWidths = new Array(sheet.width + 1).fill('2.5em');
+    this.color = color;
+
+    this.viewH = 0;
+    this.viewV = 0;
+    this.viewWidth = 0;
+    this.viewHeight = 0;
 }
 
 
 View.prototype.makeGrid = function() {
     this.tearDown();
+
+    let rowHeight = '1.5em';
+    let digits = Math.ceil(Math.log(this.sheet.width) / Math.log(26));
+    let colWidth = String(digits) + '.5em'
 
     this.cells = [];
     this.colLabels = [];
@@ -30,43 +38,51 @@ View.prototype.makeGrid = function() {
     let header = document.createElement('thead');
     this.tbl.appendChild(header);
     let rowEl = document.createElement('tr');
+    header.appendChild(rowEl);
 
     // top corner
-    let cellEl = getCell('th', 0, 0, this.rowHeights[0], this.colWidths[0], 'corner', ' ');
+    let cellEl = getCell('th', 0, 0, rowHeight, colWidth, 'corner', 'X');
     rowEl.appendChild(cellEl);
-    this.corner = cellEl
+    this.corner = cellEl;
+
+    // get height and width in pixels, calculate 
+    let heightPixels = Math.ceil(cellEl.offsetHeight) + 1;
+    let widthPixels = Math.ceil(cellEl.offsetWidth) + 1;
+    let availableHeight = Math.floor(this.tblContainer.clientHeight);
+    let availableWidth = Math.floor(this.tblContainer.clientWidth);
+    let numRows = Math.min(this.sheet.height + 1, Math.floor(availableHeight / heightPixels));
+    let numColumns = Math.min(this.sheet.width + 1, Math.floor(availableWidth / widthPixels));
+    cellEl.innerText = '';
 
     // rest of header row
-    for (let h = 1; h < this.sheet.width + 1; h++) {
-        cellEl = getCell('th', h, 0, this.rowHeights[0], this.colWidths[h], 'colLabel', getLetterCode(h));
+    for (let h = 1; h < numColumns; h++) {
+        cellEl = getCell('th', h, 0, rowHeight, colWidth, 'colLabel', getLetterCode(h));
         rowEl.appendChild(cellEl);
         this.colLabels.push(cellEl);
     }
-    header.appendChild(rowEl);
     
     // data rows
     let body = document.createElement('tbody');
     this.tbl.appendChild(body)
-    for (let i = 1, v = 0; i < this.sheet.height + 1; i++, v++) {
+    for (let i = 1, v = 0; i < numRows; i++, v++) {
         rowEl = document.createElement('tr');
         
         // make row header
-        cellEl = getCell('th', 0, i, this.rowHeights[i], this.colWidths[0], 'rowLabel', i);
+        cellEl = getCell('th', 0, i, rowHeight, colWidth, 'rowLabel', i);
         rowEl.appendChild(cellEl);
         this.rowLabels.push(cellEl);
 
         // fill row
         let row = []
-        for (let j = 1, h = 0; j < this.sheet.width + 1; j++, h++) {
-            cellEl = getCell('td', h, v, this.rowHeights[i], this.colWidths[j], 'cell', '');
+        for (let j = 1, h = 0; j < numColumns; j++, h++) {
+            cellEl = getCell('td', h, v, rowHeight, colWidth, 'cell', '');
             val = this.sheet.cells[v][h]
             cellEl.innerText = val;
             if (val == 'X')
                 cellEl.classList.add('goal');
-            else {
-                // let idx = CHARS.indexOf(val);
-                // cellEl.bgColor = COLORS[idx];
-                ;
+            else if (this.color) {
+                let idx = CHARS.indexOf(val);
+                cellEl.bgColor = COLORS[idx];
             }
             rowEl.appendChild(cellEl);
             row.push(cellEl);
@@ -79,8 +95,8 @@ View.prototype.makeGrid = function() {
     // functions used above
     function getCell(type, h, v, height, width, cssClass, text) {
         let cellEl = document.createElement(type);
-        cellEl.style.minheight = height;
-        cellEl.style.minwidth = width;
+        cellEl.style.minHeight = height;
+        cellEl.style.minWidth = width;
         cellEl.id = h + ',' + v
         cellEl.classList.add(cssClass);
         cellEl.innerText = text;
@@ -254,17 +270,20 @@ View.prototype.updateCellValue = function(str) {
     this.selected.innerText = str;
     if (str == 'X')
         this.selected.classList.add('goal');
-    else {
+    else 
         this.selected.classList.remove('goal');
-        // let idx = CHARS.indexOf(str);
-        // this.selected.bgColor = COLORS[idx];
+    if (this.color) {
+        let idx = CHARS.indexOf(str);
+        this.selected.bgColor = COLORS[idx];
     }
-
-    
 };
 
 
 View.prototype.tearDown = function() {
+    this.viewH = 0;
+    this.viewV = 0;
+    this.viewWidth = 0;
+    this.viewHeight = 0;
     while (this.tbl.childNodes.length > 0)
         this.tbl.removeChild(this.tbl.childNodes[0]);
     this.selected = null;
