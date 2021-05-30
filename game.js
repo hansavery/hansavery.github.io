@@ -53,9 +53,9 @@ Timer.prototype.end = function() {
 function Game(level) {
     this.levels = LEVELS;
     this.sheet = new Sheet();
-    const tblcontainer = document.getElementById('tblcontainer');
+    const gameContainer = document.getElementById('gameContainer');
     this.tbl = document.getElementById('tbl');
-    this.view = new View(this.sheet, tblcontainer, this.tbl);
+    this.view = new View(this.sheet, gameContainer, this.tbl, true);
     this.level = level;
     this.timer = new Timer(document.getElementById('timer'));
     this.popover = document.getElementById('popover');
