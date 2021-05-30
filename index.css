@@ -80,8 +80,8 @@ Table styling
     background-color: lightgray;
 }
 
-.goal {background-color: lightblue; border: 1px solid black;}
-#goalExample {background-color: lightblue; width: 2.5em; border: 0.5px solid black; display: inline-block; text-align: center; font-family: sans-serif;}
+.goal {background-color: yellow; border: 1px solid black; color: black; font-weight: bold; text-align: center;}
+.goal.example {padding: 0 0.5em; display: inline-block;}
 
 td.selected {outline: .3em solid green; outline-offset: -.15em;}
 .rowLabel.selected {background-color: darkgray;}
