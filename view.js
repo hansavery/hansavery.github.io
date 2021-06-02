@@ -16,23 +16,20 @@ function View(sheet, tblContainer, tbl, color) {
     this.sheet = sheet;
     this.color = color;
 
-    this.viewH = 0;
-    this.viewV = 0;
-    this.viewWidth = 0;
-    this.viewHeight = 0;
+    this.h = 0;
+    this.v = 0;
+    this.width = 0;
+    this.height = 0;
 }
 
 
 View.prototype.makeGrid = function() {
     this.tearDown();
 
-    let rowHeight = '1.5em';
+    let rowHeight = '1.5em'; // 1 character plus padding on either side
     let digits = Math.ceil(Math.log(this.sheet.width) / Math.log(26));
     let colWidth = String(digits) + '.5em'
 
-    this.cells = [];
-    this.colLabels = [];
-    this.rowLabels = [];
   
     // make header
     let header = document.createElement('thead');
@@ -280,11 +277,14 @@ View.prototype.updateCellValue = function(str) {
 
 
 View.prototype.tearDown = function() {
-    this.viewH = 0;
-    this.viewV = 0;
-    this.viewWidth = 0;
-    this.viewHeight = 0;
+    this.h = 0;
+    this.v = 0;
+    this.width = 0;
+    this.height = 0;
     while (this.tbl.childNodes.length > 0)
         this.tbl.removeChild(this.tbl.childNodes[0]);
     this.selected = null;
+    this.cells = [];
+    this.colLabels = [];
+    this.rowLabels = [];
 };
