@@ -156,6 +156,15 @@ Game.prototype.createKeyHandler = function() {
             event.preventDefault();
             event.stopPropagation();
         }
+        else if (key === 'PageUp' || key === 'PageDown') {
+            let direction = key;
+            let steps = self.view.height;
+            if (event.altKey) {
+                direction += 'Alt'
+                steps = self.view.width;
+            }
+            self.sheet.moveSelection(direction, 'step', steps);
+        }
         else if (key === 'Enter') {
             self.sheet.moveSelection(event.shiftKey ? 'ArrowUp' : 'ArrowDown', 'step');
             event.preventDefault();

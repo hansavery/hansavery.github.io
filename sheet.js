@@ -14,7 +14,7 @@ function Sheet() {
 }
 
 
-Sheet.prototype.moveSelection = function(direction, moveType) {
+Sheet.prototype.moveSelection = function(direction, moveType, steps = 1) {
     let h = this.selected.x;
     let v = this.selected.y;
 
@@ -28,6 +28,14 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
         incrementX = -1;
     else if (direction === 'ArrowRight')
         incrementX = 1;
+    else if (direction === 'PageUp')
+        incrementY = -1;
+    else if (direction === 'PageDown')
+        incrementY = 1;
+    else if (direction === 'PageUpAlt')
+        incrementX = -1;
+    else if (direction === 'PageDownAlt')
+        incrementX = 1;
     h += incrementX;
     v += incrementY;
 
@@ -35,9 +43,9 @@ Sheet.prototype.moveSelection = function(direction, moveType) {
     let lastCell = this.selected;
     let nextCell = 0 <= v && v < this.height && 0 <= h && h < this.width && new Cell(h, v, this.cells[v][h]);
     let nextIsFilled = (nextCell && nextCell.value !== ' ');
-    let stopCondition = !(startIsFilled && nextIsFilled);
+    let stopCondition = steps === 1 ? !(startIsFilled && nextIsFilled) : 'none';
 
-    let numberOfSteps = (moveType === 'skip' ? -1 : 1);
+    let numberOfSteps = (moveType === 'skip' ? -1 : steps);
     let stepsTaken = 0;
 
     while (nextCell) {
