@@ -235,8 +235,14 @@ Game.prototype.showWin = function() {
         callback = this.startGame.bind(this, this.level);
         this.showPopover('you win! your time is ' + this.timer.text + ' the record is ' + this.currentLevelRecord, callback);
     }
-    else
-        this.showPopover('yay! your time is ' + this.timer.text + ' the record is ' + this.currentLevelRecord, null);
+    else {
+        let line1 = '<h2>Your time was ' + this.timer.text + '</h2>';
+        let line2 = '<h2>My best is ' + this.currentLevelRecord + '</h2>';
+        let line3 = this.timer.text < this.currentLevelRecord ? '<h2>You win!</h2>' : '';
+        let line4 = '<h2>Click on the box to play again.</h2>';
+        this.showPopover(line1 + line2 + line3 + line4, this.startGame.bind(this, 0));
+
+    }
 };
 
 
