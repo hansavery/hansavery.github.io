@@ -45,47 +45,29 @@ table {
     border-collapse: collapse;
     font-family: sans-serif;
     white-space: nowrap;
-    line-height: 1.4em;
 } /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
-td {text-align: center; padding: 0}
-th {text-align: center; padding: 0 0.25em 0 0.25em;}
-thead th {
-    position: -webkit-sticky; /* for Safari */
-    position: sticky;
-    top: 0;
+td {
+    text-align: center;
+    padding: 0;
+    border: 0.5px solid lightgray;
+    line-height: 1.4em;
 }
-
-th.corner {
-    left: 0;
-    z-index: 1;
-}
-
-tbody th {
-    position: -webkit-sticky; /* for Safari */
-    position: sticky;
-    left: 0;
+th {
+    text-align: center;
+    padding: 0 0.25em 0 0.25em;
+    background-color: lightgray;
+    line-height: 1.4em;
 }
 
 /*********************************************************
 Table styling
 *********************************************************/
-.cell {border: 0.5px solid lightgray;}
-.rowLabel {
-    background-color: lightgray;
-}
-.colLabel {
-    background-color: lightgray;
-}
-.corner {
-    background-color: lightgray;
-}
-
 .goal {background-color: yellow; border: 1px solid black; color: black; font-weight: bold; text-align: center;}
-.goal.example {padding: 0 0.5em; display: inline-block;}
+.goal.example {padding: 0 0.5em; display: inline-block; font-family: sans-serif;}
 
 td.selected {outline: .3em solid green; outline-offset: -.15em;}
-.rowLabel.selected {background-color: darkgray;}
-.colLabel.selected {background-color: darkgray;}
+th.selected {background-color: darkgray;}
+th.selected {background-color: darkgray;}
 
 
 /*********************************************************

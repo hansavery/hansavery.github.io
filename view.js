@@ -16,161 +16,282 @@ function View(sheet, tblContainer, tbl, color) {
     this.sheet = sheet;
     this.color = color;
 
+    this.cells = [];
+    this.rowHeaders = [];
+    this.columnHeaders = [];
+
     this.h = 0;
     this.v = 0;
     this.width = 0;
     this.height = 0;
+
+    this.fullChar = '•';
 }
 
 
 View.prototype.makeGrid = function() {
+    // reset table
     this.tearDown();
-
-    let rowHeight = '1.5em'; // 1 character plus padding on either side
+    this.rowHeight = '1.5em';
     let digits = Math.ceil(Math.log(this.sheet.width) / Math.log(26));
-    let colWidth = String(digits) + '.5em'
+    this.colWidth = String(digits + 1) + 'em';
 
-  
-    // make header
-    let header = document.createElement('thead');
-    this.tbl.appendChild(header);
-    let rowEl = document.createElement('tr');
-    header.appendChild(rowEl);
+    // make columns
+    let colgroup = document.createElement('colgroup');
+    let col = document.createElement('col');
+    col.style.minWidth = this.colWidth;
+    colgroup.appendChild(col);
+    this.tbl.appendChild(colgroup);
 
-    // top corner
-    let cellEl = getCell('th', 0, 0, rowHeight, colWidth, 'corner', 'X');
-    rowEl.appendChild(cellEl);
-    this.corner = cellEl;
-
-    // get height and width in pixels, calculate 
-    let heightPixels = Math.ceil(cellEl.offsetHeight) + 1;
-    let widthPixels = Math.ceil(cellEl.offsetWidth) + 1;
-    let availableHeight = Math.floor(this.tblContainer.clientHeight);
-    let availableWidth = Math.floor(this.tblContainer.clientWidth);
-    let numRows = Math.min(this.sheet.height + 1, Math.floor(availableHeight / heightPixels));
-    let numColumns = Math.min(this.sheet.width + 1, Math.floor(availableWidth / widthPixels));
-    cellEl.innerText = '';
-
-    // rest of header row
-    for (let h = 1; h < numColumns; h++) {
-        cellEl = getCell('th', h, 0, rowHeight, colWidth, 'colLabel', getLetterCode(h));
-        rowEl.appendChild(cellEl);
-        this.colLabels.push(cellEl);
-    }
-    
-    // data rows
+    // make top corner
     let body = document.createElement('tbody');
-    this.tbl.appendChild(body)
-    for (let i = 1, v = 0; i < numRows; i++, v++) {
-        rowEl = document.createElement('tr');
-        
-        // make row header
-        cellEl = getCell('th', 0, i, rowHeight, colWidth, 'rowLabel', i);
-        rowEl.appendChild(cellEl);
-        this.rowLabels.push(cellEl);
+    let row = document.createElement('tr');
+    let cell = document.createElement('th');
+    cell.innerText = 'X';
+    cell.id = '0,0';
+    cell.classList.add('corner');
+    this.corner = cell;
+    row.appendChild(cell);
+    body.appendChild(row);
+    this.tbl.appendChild(body); // do this last so that there are no display recalcs until it is done
 
-        // fill row
-        let row = []
-        for (let j = 1, h = 0; j < numColumns; j++, h++) {
-            cellEl = getCell('td', h, v, rowHeight, colWidth, 'cell', '');
-            val = this.sheet.cells[v][h]
-            cellEl.innerText = val;
-            if (val == 'X')
-                cellEl.classList.add('goal');
-            else if (this.color) {
-                let idx = CHARS.indexOf(val);
-                cellEl.bgColor = COLORS[idx];
-            }
-            rowEl.appendChild(cellEl);
-            row.push(cellEl);
-        }
-
-        body.appendChild(rowEl);
-        this.cells.push(row);
-    }        
-
-    // functions used above
-    function getCell(type, h, v, height, width, cssClass, text) {
-        let cellEl = document.createElement(type);
-        cellEl.style.minHeight = height;
-        cellEl.style.minWidth = width;
-        cellEl.id = h + ',' + v
-        cellEl.classList.add(cssClass);
-        cellEl.innerText = text;
-        return cellEl;
-    }
-
-    function getLetterCode(num) {
-        let code = [];
-        let remaining = num;
-        while (remaining > 0) {
-            let nextChar = ((remaining - 1) % 26) + 1;
-            remaining = (remaining - nextChar) / 26;
-            code.push(String.fromCharCode(64 + nextChar));
-        }
-        code.reverse();
-        return code.join('');
-    }
+    // run same adjustment as on window resize
+    this.adjustGrid()
+    cell.innerText = '';
 };
 
 
-View.prototype.paint = function() {
-    const cell = this.cells[this.sheet.selected.y][this.sheet.selected.x];
+View.prototype.adjustGrid = function() {
+    // Changing columns is more work then changing rows. In order to minimize number of rows on which columns need to be adjusted, follow this order:
+    //      remove rows if needed >> add/remove columns >> add rows if needed
+    
+    let tbody = this.tbl.getElementsByTagName('tbody')[0];
+
+    // remove rows
+    let availableHeight = Math.floor(this.tblContainer.clientHeight);
+    let tableHeight = tbody.clientHeight;
+    let rowsRemoved = availableHeight < tableHeight;
+    if (rowsRemoved && tbody.childElementCount != this.height)
+        throw 'Row mismatch';
+    while (availableHeight < tableHeight && this.height) {
+        let row = tbody.children[this.height]; // row[0] is header, so row[x] is data row x
+        tbody.removeChild(row);
+        this.cells.pop();
+        this.rowHeaders.pop();
+        tableHeight = tbody.clientHeight;
+        this.height--;
+    }
+
+    // adjust columns
+    let colgroup = this.tbl.getElementsByTagName('colgroup')[0];
+    let availableWidth = Math.floor(this.tblContainer.clientWidth);
+    let tableWidth = tbody.clientWidth;
+    if (tableWidth < availableWidth) {
+        let colWidthPx = tbody.children[0].clientWidth;
+        while (tableWidth + colWidthPx + 10 <= availableWidth && this.width < this.sheet.width) {
+            // colgroup 
+            let col = document.createElement('col');
+            col.style.minWidth = this.colWidth;
+            colgroup.appendChild(col);
+
+            // header
+            let row = tbody.children[0];
+            let cell = document.createElement('th');
+            let h = String(this.width + 1) + ','; // cell ids are h,v coordinates
+            cell.id = h + '0';
+            cell.innerText = getLetterCode(this.width + 1);
+            this.columnHeaders.push(cell);
+            row.appendChild(cell);
+            
+            // remainder of col
+            for (let i = 1; i < tbody.childElementCount; i++) {
+                row = tbody.children[i];
+                cell = document.createElement('td');
+                cell.id = String(i) + v;
+                this.cells[i].push(cell);
+                row.appendChild(cell);
+            }
+            
+            tableWidth = tbody.clientWidth;
+            this.width++;
+        }
+
+    }
+    else {
+        if (tbody.children[0].childElementCount != this.width)
+            throw 'Column` mismatch';
+        while (tableWidth > availableWidth && this.width) { // remove columns until they fit
+            // colgroup
+            let col = colgroup.children[this.width];
+            colgroup.removeChild(col);
+
+            // header
+            let row = tbody.children[0];
+            let cell = row.children[this.width];
+            row.removeChild(cell);
+            
+            //body
+            for (let i = 1; i < tbody.childElementCount; i++) {
+                row = tbody.children[i];
+                cell = row.children[this.width];
+                this.cells[i].pop();
+                this.columnHeaders.pop();
+                row.removeChild(cell);
+            }
+
+            tableWidth = tbody.clientWidth;
+            this.width--;
+        }
+    }
+
+    // add rows
+    if (!rowsRemoved) {
+        let rowHeightPx = tbody.children[this.height].clientHeight;
+        while (tableHeight + rowHeightPx + 10 < availableHeight && this.height < this.sheet.height) {
+            // header
+            let row = document.createElement('tr');
+            let cell = document.createElement('th');
+            let v = ',' + String(this.height + 1); // cell ids are h,v coordinates
+            cell.id = '0' + v;
+            cell.innerText = String(this.height + 1);
+            this.rowHeaders.push(cell); 
+            row.appendChild(cell);
+
+            // remainder, note different logic from above
+            localRowCopy = [];
+            for (let i = 0; i < this.width; i++) {
+                cell = document.createElement('td');
+                cell.id = String(i + 1) + v;
+                localRowCopy.push(cell);
+                row.appendChild(cell);
+            }
+            this.cells.push(localRowCopy);
+            tbody.appendChild(row);
+
+            tableHeight = tbody.clientHeight
+            this.height++
+        }
+    }
+
+    this.paint(true);
+};
+
+
+function getLetterCode(num) {
+    let code = [];
+    let remaining = num;
+    while (remaining > 0) {
+        let nextChar = ((remaining - 1) % 26) + 1;
+        remaining = (remaining - nextChar) / 26;
+        code.push(String.fromCharCode(64 + nextChar));
+    }
+    code.reverse();
+    return code.join('');
+}
+
+
+View.prototype.paint = function(forcePaint = true) {
+    // const cell = this.cells[this.sheet.selected.y][this.sheet.selected.x];
+    const x = this.sheet.selected.x + 1;
+    const y = this.sheet.selected.y + 1;
+    let redraw = false;
+
+    // redo header
+    if (forcePaint || x < this.h || x > this.h + this.width - 2 ) { // minus two because cells are one-indexed and width includes first cell
+        firstH = Math.min(x, Math.max(this.h, x - this.width + 1, 1));
+        this.columnHeaders.forEach((el, i) => {
+            el.innerText = getLetterCode(firstH + i);
+            el.id = String(i) + ',0';
+        });
+        this.h = firstH;
+        redraw = true;
+    }
+    if (forcePaint || y < this.v || y > this.v + this.height - 2) { // minus two because cells are one-indexed and height includes first cell
+        firstV = Math.min(y, Math.max(this.v, y - this.height + 1, 1));
+        this.rowHeaders.forEach((el, i) => {
+            el.innerText = String(firstV + i);
+            el.id = '0,' + String(i);
+        });
+        this.v = firstV;
+        redraw = true;
+    }
+    if (redraw)
+        this.cells.forEach((row, v) => {
+            row.forEach((cell, h) => {
+                cell.id = String(h + firstH) + ',' + String(v + this.v);
+                val = this.sheet.cells[firstV + v - 1][this.h + h - 1];
+                if (val == 'X') {
+                    cell.classList.add('goal');
+                    cell.innerText = val;
+                }
+                else {
+                    cell.classList.remove('goal');
+                    if (this.color) {
+                        let idx = CHARS.indexOf(val);
+                        cell.bgColor = COLORS[idx];
+                        cell.innerText = val === ' ' ? ' ' : this.fullChar;
+                    }
+                    else
+                        cell.innerText = val;
+                }
+            });
+        });
+
+    const cell = this.cells[y - this.v][x - this.h];
     if (cell === this.selected)
         return;
-    else if (this.selected) {
-        this.selected.classList.remove('selected');
-        const priorCoordinates = this.selected.id.split(',')
-        const priorx = parseInt(priorCoordinates[0]);
-        const priory = parseInt(priorCoordinates[1]);
 
-        this.rowLabels[priory].classList.remove('selected');
-        this.colLabels[priorx].classList.remove('selected');
-    }
+    if (this.selected)
+        this.selected.classList.remove('selected');
+    if (this.rowLabel)
+        this.rowLabel.classList.remove('selected');
+    if (this.columnLabel)
+        this.columnLabel.classList.remove('selected');
+    
     cell.classList.add('selected');
     this.selected = cell;
-    const coordinates = cell.id.split(',');
-    const x = parseInt(coordinates[0]);
-    const y = parseInt(coordinates[1]);
-    this.rowLabels[y].classList.add('selected')
-    this.colLabels[x].classList.add('selected')
-    scrollSelection(cell, this.tblContainer, this.rowLabels, this.colLabels);
+    this.rowLabel = this.rowHeaders[y - this.v];
+    this.columnLabel = this.columnHeaders[x - this.h];
+    this.rowLabel.classList.add('selected');
+    this.columnLabel.classList.add('selected');
 
-    function scrollSelection(cell, container, rowLabels, colLabels) {
-        const parts = cell.id.split(",");
-        const h = parseInt(parts[0]);
-        const v = parseInt(parts[1]);
 
-        if (v === 0)
-            container.scrollTop = 0;
-        else {
-            const labelHeight = colLabels[0].clientHeight;
-            if (container.scrollTop > cell.offsetTop - labelHeight)
-                container.scrollTop = cell.offsetTop - labelHeight;
-            else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
-                container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
-        }
 
-        if (h === 0)
-            container.scrollLeft = 0;
-        else {
-            const labelWidth = rowLabels[0].clientWidth;
-            if (container.scrollLeft > cell.offsetLeft - labelWidth)
-                container.scrollLeft = cell.offsetLeft - labelWidth;
-            else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
-                container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;        
-        }
-    }
+    // scrollSelection(cell, this.tblContainer, this.rowLabels, this.colLabels);
+
+    // function scrollSelection(cell, container, rowLabels, colLabels) {
+    //     const parts = cell.id.split(",");
+    //     const h = parseInt(parts[0]);
+    //     const v = parseInt(parts[1]);
+
+    //     if (v === 0)
+    //         container.scrollTop = 0;
+    //     else {
+    //         const labelHeight = colLabels[0].clientHeight;
+    //         if (container.scrollTop > cell.offsetTop - labelHeight)
+    //             container.scrollTop = cell.offsetTop - labelHeight;
+    //         else if (container.scrollTop + container.clientHeight < cell.offsetTop + cell.clientHeight)
+    //             container.scrollTop = cell.offsetTop + cell.clientHeight - container.clientHeight;
+    //     }
+
+    //     if (h === 0)
+    //         container.scrollLeft = 0;
+    //     else {
+    //         const labelWidth = rowLabels[0].clientWidth;
+    //         if (container.scrollLeft > cell.offsetLeft - labelWidth)
+    //             container.scrollLeft = cell.offsetLeft - labelWidth;
+    //         else if (container.scrollLeft + container.clientWidth < cell.offsetLeft + cell.clientWidth)
+    //             container.scrollLeft = cell.offsetLeft + cell.clientWidth - container.clientWidth;        
+    //     }
+    // }
 
 };
 
 
 View.prototype.translateTarget = function(target) {
     const coords = target.id.split(',');
-    return new Point(parseInt(coords[0]), parseInt(coords[1]));
+    return new Point(parseInt(coords[0]) - 1, parseInt(coords[1]) - 1);
 };
-
-
 
 
 // https://stackoverflow.com/a/5624139
@@ -285,6 +406,6 @@ View.prototype.tearDown = function() {
         this.tbl.removeChild(this.tbl.childNodes[0]);
     this.selected = null;
     this.cells = [];
-    this.colLabels = [];
-    this.rowLabels = [];
+    this.rowHeaders = [];
+    this.columnHeaders = [];
 };
