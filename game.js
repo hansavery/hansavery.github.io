@@ -62,7 +62,7 @@ function Game(level) {
     this.popoverHeader = document.getElementById('popoverHeader');
 
     callback = this.startGame.bind(this, level);
-    this.showPopover('Click here to race', callback);
+    this.showPopover('<h1 id="header">Hans Avery</h1><p>... will race you.</p><p>Excel shortcuts, first to the <span class="goal example">X</span> wins.</p><p>Time starts when you click in this box.</p>', callback);
 
     this.mode = '';
 };
