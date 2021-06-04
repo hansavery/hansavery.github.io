@@ -26,6 +26,7 @@ function View(sheet, tblContainer, tbl, color) {
     this.height = 0;
 
     this.fullChar = '•';
+    this.displayChars = false;
 }
 
 
@@ -190,7 +191,7 @@ function getLetterCode(num) {
 }
 
 
-View.prototype.paint = function(forcePaint = true) {
+View.prototype.paint = function(forcePaint = false) {
     // const cell = this.cells[this.sheet.selected.y][this.sheet.selected.x];
     const x = this.sheet.selected.x + 1;
     const y = this.sheet.selected.y + 1;
@@ -332,7 +333,6 @@ function HSVtoRGB(h, s, v) {
     r = Math.round(r * 255);
     g = Math.round(g * 255);
     b = Math.round(b * 255);
-    console.log(h, s, v, r, g, b);
 
     return rgbToHex(r, g, b);
 }
@@ -385,7 +385,7 @@ COLORS.push('#ffffff');
 
 
 View.prototype.updateCellValue = function(str) {
-    this.selected.innerText = str;
+    this.selected.innerText = this.displayChars ? str : this.fullChar;
     if (str == 'X')
         this.selected.classList.add('goal');
     else 
