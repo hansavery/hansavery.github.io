@@ -81,12 +81,16 @@ Game.prototype.startGame = function(levelNumber) {
     this.view.makeGrid();
     this.view.paint(0);
 
-    this.timer.start();
+    this.countdown(3, start.bind(this));
 
-    this.tbl.onclick = this.createClickHandler();
-    document.onkeydown = this.createKeyHandler();
+    function start() {
+        this.timer.start();
 
-    this.startTime = Date.now();
+        this.tbl.onclick = this.createClickHandler();
+        document.onkeydown = this.createKeyHandler();
+    
+        this.startTime = Date.now();    
+    }
 };
 
 
@@ -216,7 +220,7 @@ Game.prototype.checkForWin = function() {
 
 Game.prototype.showPopover = function(html, onclick) {
     this.popover.classList.remove('hidden');
-    this.popover.onclick = onclick;    
+    this.popover.onclick = onclick;
     this.popoverHeader.innerHTML = html
     this.tbl.classList.add('hidden');
 };
@@ -241,7 +245,6 @@ Game.prototype.showWin = function() {
         let line3 = this.timer.text < this.currentLevelRecord ? '<h2>You win!</h2>' : '';
         let line4 = '<h2>Click on the box to play again.</h2>';
         this.showPopover(line1 + line2 + line3 + line4, this.startGame.bind(this, 0));
-
     }
 };
 
@@ -256,6 +259,31 @@ Game.prototype.exportLevel = function() {
         navigator.clipboard.writeText(JSON.stringify(level));
     };
 };
+
+
+Game.prototype.countdown = function(seconds, callback) {
+    let remaining = seconds;
+    let countdown = document.createElement('ul');
+    let container = document.getElementById('gameContainer');
+    countdown.classList.add('countdown');
+    container.appendChild(countdown);
+
+    updateCountdown()
+    let intervalId = setInterval(updateCountdown, 1000);
+
+    function updateCountdown() {
+        if (!remaining) {
+            clearInterval(intervalId);
+            container.removeChild(countdown);
+            callback();
+        }
+        num = document.createElement('li');
+        num.innerText = remaining;
+        countdown.appendChild(num);
+        setTimeout(() => {num.classList.add('fadeout');}, 250);
+        remaining--;
+    }
+}
 
 
 const sheetGame = new Game(0);
