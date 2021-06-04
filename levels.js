@@ -1,5 +1,5 @@
 LEVELS = [
-     {"record":"00:00.820","cells":["                      z                       ",
+     {"record":"00:00.432","cells":["                      z                       ",
                                     " gggggggggggggggggggggzgggggggggggggggggggggg ",
                                     " g                    z                     g ",
                                     " g hhhhhhhhhhhhhhhhhhhzhhhhhhhhhhhhhhhhhhhh g ",
