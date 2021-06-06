@@ -47,6 +47,9 @@ table {
     font-family: sans-serif;
     white-space: nowrap;
 } /* line height less than row height below but similar (or at least bigger than 1em?) to ensure text is centered correctly */
+tr {
+    height: 1.5em;
+}
 td {
     text-align: center;
     padding: 0;
