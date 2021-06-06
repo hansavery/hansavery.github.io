@@ -65,11 +65,13 @@ function Game(level) {
     this.showPopover('<h1 id="header">Hans Avery</h1><p>... will race you.</p><p>Excel shortcuts, first to the <span class="goal example">X</span> wins.</p><p>Time starts when you click in this box.</p>', callback);
 
     this.mode = '';
+    this.cheated = false;
 };
 
 
 Game.prototype.startGame = function(levelNumber) {
     this.mode = 'play';
+    this.cheated = false;
     this.events = [];
 
     level = this.levels[levelNumber];
@@ -122,6 +124,7 @@ Game.prototype.createClickHandler = function() {
     return function (event) {
         if (!event.target || event.target.nodeName !== 'TD')
             return;
+        self.cheated = true;
         if (event.shift) {
             alert('not implemented yet');
         }
@@ -240,9 +243,16 @@ Game.prototype.showWin = function() {
         this.showPopover('you win! your time is ' + this.timer.text + ' the record is ' + this.currentLevelRecord, callback);
     }
     else {
-        let line1 = '<h2>Your time was ' + this.timer.text + '</h2>';
+        let line1 = '<h2>Your time was ' + this.timer.text + '</h2>'
         let line2 = '<h2>My best is ' + this.currentLevelRecord + '</h2>';
-        let line3 = this.timer.text < this.currentLevelRecord ? '<h2>You win!</h2>' : '';
+        let line3 = '<h2>';
+        if (this.timer.text > this.currentLevelRecord)
+            line3 += 'Better luck next time.';
+        else if (this.cheated)
+            line3 += "Using the mouse kind of misses the point, don't you think? :(";
+        else
+            line3 += 'You win!';
+        line3 += '</h2>'
         let line4 = '<h2>Click on the box to play again.</h2>';
         this.showPopover(line1 + line2 + line3 + line4, this.startGame.bind(this, 0));
     }
