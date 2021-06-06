@@ -72,7 +72,7 @@ View.prototype.adjustGrid = function() {
     let availableHeight = Math.floor(this.tblContainer.clientHeight);
     let tableHeight = tbody.clientHeight;
     let rowsRemoved = availableHeight < tableHeight;
-    if (rowsRemoved && tbody.childElementCount != this.height)
+    if (rowsRemoved && tbody.childElementCount != this.height + 1) // plus 1 for header
         throw 'Row mismatch';
     while (availableHeight < tableHeight && this.height) {
         let row = tbody.children[this.height]; // row[0] is header, so row[x] is data row x
@@ -88,8 +88,8 @@ View.prototype.adjustGrid = function() {
     let availableWidth = Math.floor(this.tblContainer.clientWidth);
     let tableWidth = tbody.clientWidth;
     if (tableWidth < availableWidth) {
-        let colWidthPx = tbody.children[0].clientWidth;
-        while (tableWidth + colWidthPx + 10 <= availableWidth && this.width < this.sheet.width) {
+        let colWidthPx = tbody.children[0].children[0].clientWidth;
+        while (tableWidth + colWidthPx <= availableWidth && this.width < this.sheet.width) {
             // colgroup 
             let col = document.createElement('col');
             col.style.minWidth = this.colWidth;
@@ -108,8 +108,8 @@ View.prototype.adjustGrid = function() {
             for (let i = 1; i < tbody.childElementCount; i++) {
                 row = tbody.children[i];
                 cell = document.createElement('td');
-                cell.id = String(i) + v;
-                this.cells[i].push(cell);
+                cell.id = h + String(i);
+                this.cells[i - 1].push(cell);
                 row.appendChild(cell);
             }
             
@@ -119,7 +119,7 @@ View.prototype.adjustGrid = function() {
 
     }
     else {
-        if (tbody.children[0].childElementCount != this.width)
+        if (tbody.children[0].childElementCount != this.width + 1) // plus 1 for header
             throw 'Column` mismatch';
         while (tableWidth > availableWidth && this.width) { // remove columns until they fit
             // colgroup
@@ -135,12 +135,12 @@ View.prototype.adjustGrid = function() {
             for (let i = 1; i < tbody.childElementCount; i++) {
                 row = tbody.children[i];
                 cell = row.children[this.width];
-                this.cells[i].pop();
-                this.columnHeaders.pop();
+                this.cells[i - 1].pop(); // translate from table coordinates to cell coordinates
                 row.removeChild(cell);
             }
 
             tableWidth = tbody.clientWidth;
+            this.columnHeaders.pop();
             this.width--;
         }
     }
@@ -148,7 +148,7 @@ View.prototype.adjustGrid = function() {
     // add rows
     if (!rowsRemoved) {
         let rowHeightPx = tbody.children[this.height].clientHeight;
-        while (tableHeight + rowHeightPx + 10 < availableHeight && this.height < this.sheet.height) {
+        while (tableHeight + rowHeightPx < availableHeight && this.height < this.sheet.height) {
             // header
             let row = document.createElement('tr');
             let cell = document.createElement('th');

@@ -82,6 +82,7 @@ Game.prototype.startGame = function(levelNumber) {
     this.showGame();
     this.view.makeGrid();
     this.view.paint(0);
+    window.onresize = this.createResizeHandler();
 
     this.countdown(3, start.bind(this));
 
@@ -119,6 +120,15 @@ Game.prototype.startEditor = function(x, y) {
     this.showGame();
 };
 
+
+Game.prototype.createResizeHandler = function() {
+    self = this;
+    return function (event) {
+        self.view.adjustGrid();
+    };
+};
+
+
 Game.prototype.createClickHandler = function() {
     self = this;
     return function (event) {
@@ -126,7 +136,7 @@ Game.prototype.createClickHandler = function() {
             return;
         self.cheated = true;
         if (event.shift) {
-            alert('not implemented yet');
+            console.log('selections not implemented yet');
         }
         else {
             if (event.target.classList.contains('rowLabel')) {
