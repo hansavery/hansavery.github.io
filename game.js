@@ -255,18 +255,18 @@ Game.prototype.showWin = function() {
     }
     else {
         let winner = this.timer.text < this.currentLevelRecord;
-        let img = winner ? '<img src="./win.svg"></img>' : '';
+        let img = winner ? '<img src="./win.svg"></img>' : '<img src="./lose.svg"></img>';
         let line1 = '<h2>Your time was ' + this.timer.text + '</h2>'
-        let line2 = '<h2>My best is ' + this.currentLevelRecord + '</h2>';
+            let line2 = '<h2>My best is ' + this.currentLevelRecord + '</h2>';
         let line3 = '<h2>';
         if (!winner)
-            line3 += 'Better luck next time.';
+            line3 += '';
         else if (this.cheated)
             line3 += "Using the mouse kind of misses the point, don't you think? :(";
         else
             line3 += 'Congratulations!';
         line3 += '</h2>'
-        let line4 = '<h2>Click on the box to play again.</h2>';
+        let line4 = '<h2>Click to play again</h2>';
         this.showPopover(img + line1 + line2 + line3 + line4, this.startGame.bind(this, 0));
     }
 };
