@@ -25,7 +25,7 @@ function View(sheet, tblContainer, tbl, color) {
     this.width = 0;
     this.height = 0;
 
-    this.fullChar = '•';
+    this.fullChar = DEBUG ? '' : '•';
     this.displayChars = false;
 }
 
@@ -230,7 +230,7 @@ View.prototype.paint = function(forcePaint = false) {
                     if (this.color) {
                         let idx = CHARS.indexOf(val);
                         cell.bgColor = COLORS[idx];
-                        cell.innerText = val === ' ' ? ' ' : this.fullChar;
+                        cell.innerText = val === ' ' ? ' ' : (this.fullChar || val);
                     }
                     else
                         cell.innerText = val;

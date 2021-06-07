@@ -202,9 +202,10 @@ Game.prototype.createKeyHandler = function() {
                  !event.ctrlKey &&
                 ( // the section in this parens group is with many thanks to https://stackoverflow.com/a/12467610/1861720
                     (keyCode > 47 && keyCode < 58)   || // number keys
+                    (keyCode == 59)                  || // ;
                     (keyCode > 64 && keyCode < 91)   || // letter keys
                     (keyCode > 95 && keyCode < 112)  || // numpad keys
-                    (keyCode > 185 && keyCode < 193) || // ;=,-./` (in order)
+                    (keyCode > 186 && keyCode < 193) || // =,-./` (in order)
                     (keyCode > 218 && keyCode < 223) || // [\]' (in order)
                     keyCode === 32 // spacebar
                 )) {
@@ -214,7 +215,7 @@ Game.prototype.createKeyHandler = function() {
             event.stopPropagation();
         }
         else if (DEBUG === true)
-            alert(key, keyCode);
+            alert(key + ' ' + String(keyCode));
         self.view.paint(Date.now() - this.startTime);
         self.checkForWin();
     };
