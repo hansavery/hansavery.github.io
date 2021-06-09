@@ -267,7 +267,8 @@ Game.prototype.showWin = function() {
             line3 += 'Congratulations!';
         line3 += '</h2>'
         let line4 = '<h2>Click to play again</h2>';
-        this.showPopover(img + line1 + line2 + line3 + line4, this.startGame.bind(this, 0));
+        let line5 = '<h2>Should I make more? Send me an email or tweet @hans_avery to let me know what you think.</h2>';
+        this.showPopover(img + line1 + line2 + line3 + line4 + line5, this.startGame.bind(this, 0));
     }
 };
 
